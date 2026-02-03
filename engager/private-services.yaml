@@ -1,0 +1,189 @@
+# for port mapping, left side is host, right side is container
+services:
+  transmission-openvpn:
+    container_name: transmission
+    networks:
+      - private
+    cap_add:
+      - NET_ADMIN
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+    devices:
+      - /dev/net/tun
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+    volumes:
+      - /mnt/storage/torrents:/data/torrents
+      - /home/rooday/openvpn:/etc/openvpn/custom/
+      - ./data/transmission:/config
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TRANSMISSION_RPC_AUTHENTICATION_REQUIRED=true
+      - TRANSMISSION_RPC_USERNAME=${TRANSMISSION_RPC_USERNAME}
+      - TRANSMISSION_RPC_PASSWORD=${TRANSMISSION_RPC_PASSWORD}
+      - TRANSMISSION_WEB_UI=combustion
+      - TRANSMISSION_DOWNLOAD_DIR=/data/torrents/completed
+      - TRANSMISSION_INCOMPLETE_DIR=/data/torrents/incomplete
+      - TRANSMISSION_PEER_PORT=22290
+      - OPENVPN_PROVIDER=custom
+      - OPENVPN_CONFIG=AirVPN_US-Atlanta-Georgia_Hercules_UDP-443-Entry3
+      - OPENVPN_USERNAME=user
+      - OPENVPN_PASSWORD=pass
+      - LOCAL_NETWORK=192.168.1.0/24
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    ports:
+      - "9091:9091"
+    image: haugene/transmission-openvpn:5.3.2
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.transmission.rule=Host(`transmission.engager.ts.rooday.com`)
+      - traefik.http.services.transmission.loadbalancer.server.port=9091
+      - traefik.http.routers.transmission.entrypoints=websecure
+      - traefik.http.routers.transmission.tls.certresolver=cloudflare
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    networks:
+      - private
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+    volumes:
+      - ./data/bazarr:/config
+      - /mnt/storage/media:/data/media
+    ports:
+      - 6767:6767
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.bazarr.rule=Host(`bazarr.engager.ts.rooday.com`)
+      - traefik.http.services.bazarr.loadbalancer.server.port=6767
+      - traefik.http.routers.bazarr.entrypoints=websecure
+      - traefik.http.routers.bazarr.tls.certresolver=cloudflare
+      - traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto = https
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:develop
+    container_name: prowlarr
+    networks:
+      - private
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+      - DOCKER_MODS=ghcr.io/gilbn/theme.park:prowlarr
+      - TP_THEME=dracula
+    volumes:
+      - ./data/prowlarr:/config
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.prowlarr.rule=Host(`prowlarr.engager.ts.rooday.com`)
+      - traefik.http.services.prowlarr.loadbalancer.server.port=9696
+      - traefik.http.routers.prowlarr.entrypoints=websecure
+      - traefik.http.routers.prowlarr.tls.certresolver=cloudflare
+  radarr:
+    image: lscr.io/linuxserver/radarr:3.0.0.4002-ls29
+    container_name: radarr
+    networks:
+      - private
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+      - DOCKER_MODS=ghcr.io/gilbn/theme.park:radarr
+      - TP_THEME=dracula
+    volumes:
+      - ./data/radarr:/config
+      - /mnt/storage:/data
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.radarr.rule=Host(`radarr.engager.ts.rooday.com`)
+      - traefik.http.services.radarr.loadbalancer.server.port=7878
+      - traefik.http.routers.radarr.entrypoints=websecure
+      - traefik.http.routers.radarr.tls.certresolver=cloudflare
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:3.0.4.1006-ls77
+    container_name: sonarr
+    networks:
+      - private
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+      - DOCKER_MODS=ghcr.io/gilbn/theme.park:sonarr
+      - TP_THEME=dracula
+    volumes:
+      - ./data/sonarr:/config
+      - /mnt/storage:/data
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.sonarr.rule=Host(`sonarr.engager.ts.rooday.com`)
+      - traefik.http.services.sonarr.loadbalancer.server.port=8989
+      - traefik.http.routers.sonarr.entrypoints=websecure
+      - traefik.http.routers.sonarr.tls.certresolver=cloudflare
+  flaresolverr:
+    # DockerHub mirror flaresolverr/flaresolverr:latest
+    image: ghcr.io/flaresolverr/flaresolverr:v3.4.6
+    container_name: flaresolverr
+    networks:
+      - private
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_HTML=${LOG_HTML:-false}
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=America/New_York
+    ports:
+      - "${PORT:-8191}:8191"
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.flaresolverr.rule=Host(`flaresolverr.engager.ts.rooday.com`)
+      - traefik.http.services.flaresolverr.loadbalancer.server.port=8191
+      - traefik.http.routers.flaresolverr.entrypoints=websecure
+      - traefik.http.routers.flaresolverr.tls.certresolver=cloudflare
+  recyclarr:
+    image: ghcr.io/recyclarr/recyclarr:7.5.2
+    container_name: recyclarr
+    networks:
+      - private
+    init: true
+    user: 1000:1000
+    volumes:
+      - ./data/recyclarr:/config
+    environment:
+      - TZ=America/New_York
+    labels:
+      - traefik.enable=false
+  docksmith:
+    image: ghcr.io/chrisae9/docksmith:0.1.0
+    container_name: docksmith
+    user: root
+    networks:
+      - public
+      - private
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/docksmith:/data
+      - /home/rooday/docker-compose:/home/rooday/docker-compose:rw
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.docksmith.rule=Host(`docksmith.engager.ts.rooday.com`)
+      - traefik.http.services.docksmith.loadbalancer.server.port=8080
+      - traefik.http.routers.docksmith.entrypoints=websecure
+      - traefik.http.routers.docksmith.tls.certresolver=cloudflare

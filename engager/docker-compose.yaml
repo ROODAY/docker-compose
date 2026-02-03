@@ -1,0 +1,4 @@
+include:
+  - network-infra.yaml
+  - private-services.yaml
+  - public-services.yaml

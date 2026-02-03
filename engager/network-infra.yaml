@@ -1,0 +1,126 @@
+# for port mapping, left side is host, right side is container
+networks:
+  public:
+    name: public
+    driver: bridge
+  private:
+    name: private
+    driver: bridge
+services:
+  tailscale:
+    image: tailscale/tailscale:v1.92.5
+    container_name: tailscale
+    hostname: engager
+    networks:
+      - private
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}?ephemeral=false
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_EXTRA_ARGS=--advertise-tags=tag:container --advertise-exit-node
+    volumes:
+      - ./data/tailscale:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    restart: unless-stopped
+    labels:
+      - traefik.enable=false
+  traefik-ts:
+    image: traefik:3.6.7
+    container_name: traefik-ts
+    restart: unless-stopped
+    network_mode: service:tailscale
+    volumes:
+      - ./data/traefik-tailscale/letsencrypt:/letsencrypt
+      - ./data/traefik-tailscale/dynamic.yml:/dynamic.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - CLOUDFLARE_EMAIL=${CLOUDFLARE_EMAIL}
+      - CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
+    command:
+      - --accesslog=true
+      - --providers.docker=true
+      - --providers.file.filename=/dynamic.yml
+      - --api
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.cloudflare.acme.dnschallenge=true
+      - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
+      - --certificatesresolvers.cloudflare.acme.email=${CLOUDFLARE_EMAIL}
+      - --certificatesresolvers.cloudflare.acme.storage=/letsencrypt/acme.json
+    labels:
+      - traefik.enable=true
+      # Traefik Dashboard
+      - traefik.http.routers.traefik-ts.rule=Host(`traefik.engager.ts.rooday.com`)
+      - traefik.http.services.traefik-ts.loadbalancer.server.port=8080
+      - traefik.http.routers.traefik-ts.service=api@internal
+      - traefik.http.routers.traefik-ts.entrypoints=websecure
+      - traefik.http.routers.traefik-ts.tls.certresolver=cloudflare
+      - traefik.http.routers.traefik-ts.middlewares=myauth
+      - traefik.http.middlewares.myauth.basicauth.users=${TRAEFIK_BASIC_AUTH}
+      # Proxmox Reverse Proxy
+      - traefik.http.routers.proxmox.rule=Host(`engager.ts.rooday.com`)
+      - traefik.http.routers.proxmox.entrypoints=websecure
+      - traefik.http.routers.proxmox.tls.certresolver=cloudflare
+      - traefik.http.routers.proxmox.service=proxmox
+      - traefik.http.services.proxmox.loadbalancer.server.url=${PROXBOX_BACKEND_URL}
+      - traefik.http.services.proxmox.loadbalancer.serversTransport=insecure@file
+      - traefik.http.services.proxmox.loadbalancer.passhostheader=true
+  traefik:
+    image: traefik:3.6.7
+    container_name: traefik
+    restart: unless-stopped
+    networks:
+      - public
+    volumes:
+      - ./data/traefik/letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      - CLOUDFLARE_EMAIL=${CLOUDFLARE_EMAIL}
+      - CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
+    command:
+      - --accesslog=true
+      - --api
+      - --providers.docker=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.websecure.http.tls=true
+      - --certificatesresolvers.cloudflare.acme.dnschallenge=true
+      - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
+      - --certificatesresolvers.cloudflare.acme.email=${CLOUDFLARE_EMAIL}
+      - --certificatesresolvers.cloudflare.acme.storage=/letsencrypt/acme.json
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik.rule=Host(`traefik.engager.rooday.com`)
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.entrypoints=websecure
+      - traefik.http.routers.traefik.tls.certresolver=cloudflare
+      - traefik.http.routers.traefik.middlewares=myauth
+      - traefik.http.middlewares.myauth.basicauth.users=${TRAEFIK_BASIC_AUTH}
+  cloudflare-ddns:
+    image: timothyjmiller/cloudflare-ddns:latest
+    container_name: cloudflare-ddns
+    security_opt:
+      - no-new-privileges:true
+    network_mode: "host"
+    environment:
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - ./data/cloudflare-ddns/ddns.config.json:/config.json
+    restart: unless-stopped
+    labels:
+      - traefik.enable=false
