@@ -1,7 +1,7 @@
 # for port mapping, left side is host, right side is container
 services:
   plex:
-    image: lscr.io/linuxserver/plex:1.21.1.3795-ee64ab56f-ls9
+    image: lscr.io/linuxserver/plex:latest
     container_name: plex
     networks:
       - public
@@ -27,7 +27,7 @@ services:
       - traefik.http.routers.plex.entrypoints=websecure
       - traefik.http.routers.plex.tls.certresolver=cloudflare
   kometa:
-    image: kometateam/kometa:v2.2.2
+    image: kometateam/kometa:latest
     container_name: kometa
     networks:
       - public
@@ -39,7 +39,7 @@ services:
     labels:
       - traefik.enable=false
   tautulli:
-    image: lscr.io/linuxserver/tautulli:v2.6.1-ls15
+    image: lscr.io/linuxserver/tautulli:latest
     container_name: tautulli
     networks:
       - public
@@ -61,7 +61,7 @@ services:
       - traefik.http.routers.tautulli.entrypoints=websecure
       - traefik.http.routers.tautulli.tls.certresolver=cloudflare
   synclounge:
-    image: lscr.io/linuxserver/synclounge:4.1.16-ls1
+    image: lscr.io/linuxserver/synclounge:latest
     container_name: synclounge
     networks:
       - public
@@ -102,7 +102,7 @@ services:
   #     - traefik.http.routers.requestrr.tls.certresolver=cloudflare
   #     - traefik.docker.network=public
   librespeed:
-    image: lscr.io/linuxserver/librespeed:5.2.4-ls56
+    image: lscr.io/linuxserver/librespeed:latest
     container_name: librespeed
     networks:
       - public
@@ -123,7 +123,7 @@ services:
       - traefik.http.routers.librespeed.entrypoints=websecure
       - traefik.http.routers.librespeed.tls.certresolver=cloudflare
   corsproxy:
-    image: imjacobclark/cors-container
+    image: imjacobclark/cors-container:latest
     container_name: corsproxy
     networks:
       - public
@@ -137,7 +137,7 @@ services:
       - traefik.http.routers.corsproxy.entrypoints=websecure
       - traefik.http.routers.corsproxy.tls.certresolver=cloudflare
   plexautolanguages:
-    image: remirigal/plex-auto-languages:v1.2.3
+    image: remirigal/plex-auto-languages:latest
     container_name: PlexAutoLanguages
     networks:
       - public

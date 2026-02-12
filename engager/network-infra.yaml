@@ -8,7 +8,7 @@ networks:
     driver: bridge
 services:
   tailscale:
-    image: tailscale/tailscale:v1.92.5
+    image: tailscale/tailscale:latest
     container_name: tailscale
     hostname: engager
     networks:
@@ -28,7 +28,7 @@ services:
     labels:
       - traefik.enable=false
   traefik-ts:
-    image: traefik:3.6.7
+    image: traefik:latest
     container_name: traefik-ts
     restart: unless-stopped
     network_mode: service:tailscale
@@ -72,8 +72,9 @@ services:
       - traefik.http.services.proxmox.loadbalancer.server.url=${PROXBOX_BACKEND_URL}
       - traefik.http.services.proxmox.loadbalancer.serversTransport=insecure@file
       - traefik.http.services.proxmox.loadbalancer.passhostheader=true
+      - docksmith.version-pin-major=true
   traefik:
-    image: traefik:3.6.7
+    image: traefik:latest
     container_name: traefik
     restart: unless-stopped
     networks:
@@ -110,6 +111,7 @@ services:
       - traefik.http.routers.traefik.tls.certresolver=cloudflare
       - traefik.http.routers.traefik.middlewares=myauth
       - traefik.http.middlewares.myauth.basicauth.users=${TRAEFIK_BASIC_AUTH}
+      - docksmith.version-pin-major=true
   cloudflare-ddns:
     image: timothyjmiller/cloudflare-ddns:latest
     container_name: cloudflare-ddns
