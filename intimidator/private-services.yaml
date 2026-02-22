@@ -1,0 +1,332 @@
+# for port mapping, left side is host, right side is container
+services:
+  transmission-openvpn:
+    container_name: transmission
+    cap_add:
+      - NET_ADMIN
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+    networks:
+      - private
+    devices:
+      - /dev/net/tun
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+    volumes:
+      - /mnt/storage/torrents:/data/torrents
+      - /home/rooday/openvpn:/etc/openvpn/custom/
+      - ./data/transmission:/config
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TRANSMISSION_RPC_AUTHENTICATION_REQUIRED=true
+      - TRANSMISSION_RPC_USERNAME=${TRANSMISSION_RPC_USERNAME}
+      - TRANSMISSION_RPC_PASSWORD=${TRANSMISSION_RPC_PASSWORD}
+      - TRANSMISSION_WEB_UI=combustion
+      - TRANSMISSION_DOWNLOAD_DIR=/data/torrents/completed
+      - TRANSMISSION_INCOMPLETE_DIR=/data/torrents/incomplete
+      - TRANSMISSION_PEER_PORT=${TRANSMISSION_PEER_PORT}
+      - OPENVPN_PROVIDER=custom
+      - OPENVPN_CONFIG=${TRANSMISSION_OPENVPN_CONFIG}
+      - OPENVPN_USERNAME=${TRANSMISSION_OPENVPN_USERNAME}
+      - OPENVPN_PASSWORD=${TRANSMISSION_OPENVPN_PASSWORD}
+      - LOCAL_NETWORK=10.0.0.0/24
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    image: haugene/transmission-openvpn
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.transmission.rule=Host(`transmission.intimidator.ts.rooday.com`)
+      - traefik.http.services.transmission.loadbalancer.server.port=9091
+      - traefik.http.routers.transmission.entrypoints=websecure
+      - traefik.http.routers.transmission.tls.certresolver=cloudflare
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    networks:
+      - private
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+    volumes:
+      - ./data/bazarr:/config
+      - /mnt/storage/media:/data/media
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.bazarr.rule=Host(`bazarr.intimidator.ts.rooday.com`)
+      - traefik.http.services.bazarr.loadbalancer.server.port=6767
+      - traefik.http.routers.bazarr.entrypoints=websecure
+      - traefik.http.routers.bazarr.tls.certresolver=cloudflare
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:develop
+    container_name: prowlarr
+    networks:
+      - private
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+    volumes:
+      - ./data/prowlarr:/config
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.prowlarr.rule=Host(`prowlarr.intimidator.ts.rooday.com`)
+      - traefik.http.services.prowlarr.loadbalancer.server.port=9696
+      - traefik.http.routers.prowlarr.entrypoints=websecure
+      - traefik.http.routers.prowlarr.tls.certresolver=cloudflare
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    networks:
+      - private
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+    volumes:
+      - ./data/radarr:/config
+      - /mnt/storage:/data
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.radarr.rule=Host(`radarr.intimidator.ts.rooday.com`)
+      - traefik.http.services.radarr.loadbalancer.server.port=7878
+      - traefik.http.routers.radarr.entrypoints=websecure
+      - traefik.http.routers.radarr.tls.certresolver=cloudflare
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    networks:
+      - private
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+    volumes:
+      - ./data/sonarr:/config
+      - /mnt/storage:/data
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.sonarr.rule=Host(`sonarr.intimidator.ts.rooday.com`)
+      - traefik.http.services.sonarr.loadbalancer.server.port=8989
+      - traefik.http.routers.sonarr.entrypoints=websecure
+      - traefik.http.routers.sonarr.tls.certresolver=cloudflare
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    networks:
+      - private
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - ./data/lidarr:/config
+      - /mnt/storage:/data
+    ports:
+      - 8686:8686
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.lidarr.rule=Host(`lidarr.intimidator.ts.rooday.com`)
+      - traefik.http.services.lidarr.loadbalancer.server.port=8686
+      - traefik.http.routers.lidarr.entrypoints=websecure
+      - traefik.http.routers.lidarr.tls.certresolver=cloudflare
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    networks:
+      - private
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_HTML=${LOG_HTML:-false}
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=America/Los_Angeles
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.flaresolverr.rule=Host(`flaresolverr.intimidator.ts.rooday.com`)
+      - traefik.http.services.flaresolverr.loadbalancer.server.port=8191
+      - traefik.http.routers.flaresolverr.entrypoints=websecure
+      - traefik.http.routers.flaresolverr.tls.certresolver=cloudflare
+  recyclarr:
+    image: ghcr.io/recyclarr/recyclarr
+    container_name: recyclarr
+    networks:
+      - private
+    init: true
+    user: 1000:1000
+    volumes:
+      - ./data/recyclarr:/config
+    environment:
+      - TZ=America/Los_Angeles
+    labels:
+      - traefik.enable=false
+  scrutiny:
+    image: ghcr.io/analogj/scrutiny:master-omnibus
+    container_name: scrutiny
+    networks:
+      - private
+    cap_add:
+      - SYS_RAWIO
+      - SYS_ADMIN #optional
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+    volumes:
+      - ./data/scrutiny/config:/opt/scrutiny/config
+      - ./data/scrutiny/influxdb:/opt/scrutiny/influxdb
+      - /run/udev:/run/udev:ro
+    devices:
+      - /dev/nvme0:/dev/nvme0
+      - /dev/sda:/dev/sda
+      - /dev/sdb:/dev/sdb
+      - /dev/sdc:/dev/sdc
+      - /dev/sdd:/dev/sdd
+      - /dev/sde:/dev/sde
+      # - /dev/sdf:/dev/sdf
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.scrutiny.rule=Host(`scrutiny.intimidator.ts.rooday.com`)
+      - traefik.http.services.scrutiny.loadbalancer.server.port=8080
+      - traefik.http.routers.scrutiny.entrypoints=websecure
+      - traefik.http.routers.scrutiny.tls.certresolver=cloudflare
+  glances:
+    image: nicolargo/glances:latest
+    restart: unless-stopped
+    container_name: glances
+    networks:
+      - private
+    pid: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Uncomment the below line if you want glances to display host OS detail instead of container's
+      - /etc/os-release:/etc/os-release:ro
+    environment:
+      - "GLANCES_OPT=-w"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.glances.rule=Host(`glances.intimidator.ts.rooday.com`)
+      - traefik.http.services.glances.loadbalancer.server.port=61208
+      - traefik.http.routers.glances.entrypoints=websecure
+      - traefik.http.routers.glances.tls.certresolver=cloudflare
+  actual:
+    image: docker.io/actualbudget/actual-server:latest
+    container_name: actual
+    networks:
+      - private
+    restart: unless-stopped
+    ports:
+      - 5006:5006
+    volumes:
+      - ./data/actual:/data
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.actual.rule=Host(`actual.rooday.com`)
+      - traefik.http.services.actual.loadbalancer.server.port=5006
+      - traefik.http.routers.actual.entrypoints=websecure
+      - traefik.http.routers.actual.tls.certresolver=cloudflare
+  kometa:
+    image: kometateam/kometa
+    container_name: kometa
+    networks:
+      - public
+      - private
+    environment:
+      - TZ=America/Los_Angeles
+    volumes:
+      - ./data/kometa:/config
+    restart: unless-stopped
+    labels:
+      - traefik.enable=false
+  immich-power-tools:
+    container_name: immich_power_tools
+    image: ghcr.io/varun-raj/immich-power-tools:latest
+    networks:
+      - public
+      - private
+    environment:
+      HOSTNAME: "0.0.0.0"
+    ports:
+      - 8001:3000
+    env_file:
+      - .env
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.immich-power-tools.rule=Host(`power-tools.immich.intimidator.ts.rooday.com`)
+      - traefik.http.services.immich-power-tools.loadbalancer.server.port=3000
+      - traefik.http.routers.immich-power-tools.entrypoints=websecure
+      - traefik.http.routers.immich-power-tools.tls.certresolver=cloudflare
+      - traefik.docker.network=private
+  calibre:
+    image: lscr.io/linuxserver/calibre:latest
+    container_name: calibre
+    security_opt:
+      - seccomp:unconfined #optional
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+      # - PASSWORD= #optional
+    networks:
+      - private
+    volumes:
+      - ./data/calibre:/config
+      - /mnt/tank/fuse/media/books:/config/books
+    ports:
+      - 48080:8080
+      - 48181:8181
+      - 48081:8081
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.calibre.rule=Host(`calibre.intimidator.ts.rooday.com`)
+      - traefik.http.services.calibre.loadbalancer.server.port=8080
+      - traefik.http.routers.calibre.entrypoints=websecure
+      - traefik.http.routers.calibre.tls.certresolver=cloudflare
+  obsidian-script-server:
+    build:
+      context: /home/rooday/obsidian-scripts-server
+    container_name: obsidian-script-server
+    networks:
+      - private
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+    volumes:
+      - /home/rooday/obsidian-scripts-server/.env:/usr/src/app/.env
+      - /home/rooday/obsidian-scripts-server/src/fitbit_refresh_token.secret:/usr/src/app/src/fitbit_refresh_token.secret
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.oss.rule=Host(`oss.intimidator.ts.rooday.com`)
+      - traefik.http.services.oss.loadbalancer.server.port=3000
+      - traefik.http.routers.oss.entrypoints=websecure
+      - traefik.http.routers.oss.tls.certresolver=cloudflare
+  dashy:
+    image: lissy93/dashy:latest
+    container_name: dashy
+    networks:
+      - public
+      - private
+    volumes:
+      - ./data/dashy:/app/user-data/
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dashy.rule=Host(`dashy.intimidator.ts.rooday.com`)
+      - traefik.http.services.dashy.loadbalancer.server.port=8080
+      - traefik.http.routers.dashy.entrypoints=websecure
+      - traefik.http.routers.dashy.tls.certresolver=cloudflare
+      - traefik.docker.network=private

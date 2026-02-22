@@ -1,0 +1,243 @@
+# for port mapping, left side is host, right side is container
+services:
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    networks:
+      - public
+    ports:
+      - 32400:32400
+    environment:
+      - PUID=1000
+      - NVIDIA_VISIBLE_DEVICES=all
+      - PGID=1000
+      - VERSION=docker
+      - PLEX_CLAIM=${PLEX_CLAIM}
+    volumes:
+      - /mnt/plex/config:/config
+      - /mnt/plex/transcode:/transcode
+      - /mnt/storage/media:/data/media
+    devices:
+      - /dev/dri:/dev/dri
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.plex.rule=Host(`plex.intimidator.rooday.com`)
+      - traefik.http.services.plex.loadbalancer.server.port=32400
+      - traefik.http.routers.plex.entrypoints=websecure
+      - traefik.http.routers.plex.tls.certresolver=cloudflare
+  tautulli:
+    image: lscr.io/linuxserver/tautulli:latest
+    container_name: tautulli
+    networks:
+      - public
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+    volumes:
+      - ./data/tautulli:/config
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.tautulli.rule=Host(`tautulli.intimidator.rooday.com`)
+      - traefik.http.services.tautulli.loadbalancer.server.port=8181
+      - traefik.http.routers.tautulli.entrypoints=websecure
+      - traefik.http.routers.tautulli.tls.certresolver=cloudflare
+  synclounge:
+    image: lscr.io/linuxserver/synclounge:latest
+    # image: isolation0230/synclounge:dev-2025-09-11-7
+    container_name: synclounge
+    networks:
+      - public
+    environment:
+      - TZ=America/Los_Angeles
+      - AUTH_LIST=${SYNCLOUNGE_AUTH_LIST}
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.synclounge.rule=Host(`synclounge.intimidator.rooday.com`)
+      - traefik.http.services.synclounge.loadbalancer.server.port=8088
+      - traefik.http.routers.synclounge.entrypoints=websecure
+      - traefik.http.routers.synclounge.tls.certresolver=cloudflare
+  requestrr:
+    image: thomst08/requestrr
+    container_name: requestrr
+    networks:
+      - public
+      - private
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+    volumes:
+      - ./data/requestrr:/root/config
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.requestrr.rule=Host(`requestrr.intimidator.rooday.com`)
+      - traefik.http.services.requestrr.loadbalancer.server.port=4545
+      - traefik.http.routers.requestrr.entrypoints=websecure
+      - traefik.http.routers.requestrr.tls.certresolver=cloudflare
+      - traefik.docker.network=public
+  librespeed:
+    image: lscr.io/linuxserver/librespeed:latest
+    container_name: librespeed
+    networks:
+      - public
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+      - PASSWORD=${LIBRESPEED_PASSWORD}
+    volumes:
+      - ./data/librespeed:/config
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.librespeed.rule=Host(`librespeed.intimidator.rooday.com`)
+      - traefik.http.services.librespeed.loadbalancer.server.port=80
+      - traefik.http.routers.librespeed.entrypoints=websecure
+      - traefik.http.routers.librespeed.tls.certresolver=cloudflare
+  troddit:
+    image: bsyed/troddit
+    container_name: troddit
+    networks:
+      - public
+    environment:
+      - CLIENT_ID=${TRODDIT_CLIENT_ID}
+      - CLIENT_SECRET=${TRODDIT_CLIENT_SECRET}
+      - REDDIT_REDIRECT=${TRODDIT_REDDIT_REDIRECT}
+      - NEXTAUTH_SECRET=${TRODDIT_NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${TRODDIT_NEXTAUTH_URL}
+      - SIGNING_PRIVATE_KEY=${TRODDIT_SIGNING_PRIVATE_KEY}
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.troddit.rule=Host(`troddit.rooday.com`)
+      - traefik.http.services.troddit.loadbalancer.server.port=3000
+      - traefik.http.routers.troddit.entrypoints=websecure
+      - traefik.http.routers.troddit.tls.certresolver=cloudflare
+  tandoor_db:
+    restart: unless-stopped
+    container_name: tandoor_db
+    networks:
+      - public
+    image: postgres:16-alpine
+    volumes:
+      - ./data/tandoor/postgres:/var/lib/postgresql/data
+    env_file:
+      - tandoor.env
+  tandoor:
+    restart: unless-stopped
+    image: vabene1111/recipes
+    container_name: tandoor
+    networks:
+      - public
+    env_file:
+      - tandoor.env
+    volumes:
+      - ./data/tandoor/staticfiles:/opt/recipes/staticfiles
+      - ./data/tandoor/mediafiles:/opt/recipes/mediafiles
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.tandoor.rule=Host(`tandoor.rooday.com`)
+      - traefik.http.services.tandoor.loadbalancer.server.port=80
+      - traefik.http.routers.tandoor.entrypoints=websecure
+      - traefik.http.routers.tandoor.tls.certresolver=cloudflare
+    depends_on:
+      - tandoor_db
+  ghost:
+    image: ghost:5-alpine
+    container_name: ghost
+    networks:
+      - public
+    restart: unless-stopped
+    ports:
+      - 8282:2368
+    environment:
+      database__client: mysql
+      database__connection__host: ghostdb
+      database__connection__user: ${GHOST_DB_USER}
+      database__connection__password: ${GHOST_DB_PASSWORD}
+      database__connection__database: ghost
+      mail__transport: SMTP
+      mail__from: blog@mail.rooday.com
+      mail__options__host: email-smtp.us-east-1.amazonaws.com
+      mail__options__port: 587
+      mail__options__secureConnection: false
+      mail__options__auth__user: ${GHOST_MAIL_USER}
+      mail__options__auth__pass: ${GHOST_MAIL_PASSWORD}
+      url: https://blog.rooday.com
+    volumes:
+      - ./data/ghost:/var/lib/ghost/content
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.ghost.rule=Host(`blog.rooday.com`)
+      - traefik.http.services.ghost.loadbalancer.server.port=2368
+      - traefik.http.routers.ghost.entrypoints=websecure
+      - traefik.http.routers.ghost.tls.certresolver=cloudflare
+  ghostdb:
+    image: mysql:8.0
+    container_name: ghostdb
+    networks:
+      - public
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${GHOST_DB_PASSWORD}
+    volumes:
+      - ./data/ghostdb:/var/lib/mysql
+  calibre-web:
+    image: lscr.io/linuxserver/calibre-web:latest
+    container_name: calibre-web
+    networks:
+      - public
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+      - DOCKER_MODS=linuxserver/mods:universal-calibre #optional
+      - OAUTHLIB_RELAX_TOKEN_SCOPE=1 #optional
+    volumes:
+      - ./data/calibre-web:/config
+      - /mnt/tank/fuse/media/books:/books
+    ports:
+      - 8083:8083
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.calibre-web.rule=Host(`calibre.intimidator.rooday.com`)
+      - traefik.http.services.calibre-web.loadbalancer.server.port=8083
+      - traefik.http.routers.calibre-web.entrypoints=websecure
+      - traefik.http.routers.calibre-web.tls.certresolver=cloudflare
+  uptime-kuma:
+    image: louislam/uptime-kuma
+    container_name: uptime-kuma
+    networks:
+      - public
+      - private
+    volumes:
+      - ./data/uptime-kuma:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.kuma.rule=Host(`uptime.intimidator.rooday.com`)
+      - traefik.http.services.kuma.loadbalancer.server.port=3001
+      - traefik.http.routers.kuma.entrypoints=websecure
+      - traefik.http.routers.kuma.tls.certresolver=cloudflare
+      - traefik.docker.network=public
+  plexautolanguages:
+    image: remirigal/plex-auto-languages:latest
+    container_name: PlexAutoLanguages
+    networks:
+      - public
+    environment:
+      - PLEX_URL=http://plex:32400
+      - PLEX_TOKEN=${PAL_PLEX_TOKEN}
+      - TZ=America/Los_Angeles
+    volumes:
+      - ./data/plex-auto-languages:/config
+    restart: unless-stopped
+    labels:
+      - traefik.enable=false

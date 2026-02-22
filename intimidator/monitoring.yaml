@@ -1,0 +1,77 @@
+# for port mapping, left side is host, right side is container
+services:
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    #user: 1000:1000
+    networks:
+      - public
+    volumes:
+      - ./data/monitoring/influxdb/data:/var/lib/influxdb2
+      - ./data/monitoring/influxdb/config:/etc/influxdb2
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - INFLUXDB_DB=db0
+      # - DOCKER_INFLUXDB_INIT_MODE=setup
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.influxdb.rule=Host(`influxdb.intimidator.rooday.com`)
+      - traefik.http.services.influxdb.loadbalancer.server.port=8086
+      - traefik.http.routers.influxdb.entrypoints=websecure
+      - traefik.http.routers.influxdb.tls.certresolver=cloudflare
+  fitbit-fetch-data:
+    restart: unless-stopped
+    image: thisisarpanghosh/fitbit-fetch-data:latest
+    user: 1000:1000
+    networks:
+      - public
+    depends_on:
+      - influxdb
+    container_name: fitbit-fetch-data
+    volumes:
+      - ./data/monitoring/fitbit/logs:/app/logs # logs folder should exist and owned by user id 1000
+      - ./data/monitoring/fitbit/tokens:/app/tokens # tokens folder should exist and owned by user id 1000
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - FITBIT_LOG_FILE_PATH=/app/logs/fitbit.log
+      - TOKEN_FILE_PATH=/app/tokens/fitbit.token
+      - OVERWRITE_LOG_FILE=True
+      - INFLUXDB_VERSION=2 # supported values are 1 and 2
+      # Variables for influxdb 2.x ( you need to change the influxdb container config below accordingly )
+      - INFLUXDB_BUCKET=${FFD_INFLUXDB_BUCKET} # for influxdb 2.x
+      - INFLUXDB_ORG=${FFD_INFLUXDB_ORG} # for influxdb 2.x
+      - INFLUXDB_TOKEN=${FFD_INFLUXDB_TOKEN} # for influxdb 2.x
+      - INFLUXDB_URL=http://influxdb:8086 # for influxdb 2.x
+      - CLIENT_ID=${FFD_CLIENT_ID} # Change this to your client ID
+      - CLIENT_SECRET=${FFD_CLIENT_SECRET} # Change this to your client Secret
+      - DEVICENAME=Sense2 # Change this to your device name - e.g. "Charge5"
+      - LOCAL_TIMEZONE=Automatic # set to "Automatic" for Automatic setup from User profile (if not mentioned here specifically).
+    labels:
+      - traefik.enable=false
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    networks:
+      - public
+    user: 1000:1000
+    volumes:
+      - ./data/monitoring/grafana:/var/lib/grafana
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - influxdb
+    environment:
+      - GF_SECURITY_ADMIN_USER=${FFD_GF_SECURITY_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${FFD_GF_SECURITY_ADMIN_PASSWORD}
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.grafana.rule=Host(`grafana.intimidator.rooday.com`)
+      - traefik.http.services.grafana.loadbalancer.server.port=3000
+      - traefik.http.routers.grafana.entrypoints=websecure
+      - traefik.http.routers.grafana.tls.certresolver=cloudflare

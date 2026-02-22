@@ -1,0 +1,49 @@
+services:
+  grampsweb: &grampsweb
+    image: ghcr.io/gramps-project/grampsweb:latest
+    container_name: grampsweb
+    restart: unless-stopped
+    networks:
+      - private
+    environment:
+      GRAMPSWEB_TREE: "Gramps Web" # will create a new tree if not exists
+      GRAMPSWEB_CELERY_CONFIG__broker_url: "redis://grampsweb_redis:6379/0"
+      GRAMPSWEB_CELERY_CONFIG__result_backend: "redis://grampsweb_redis:6379/0"
+      GRAMPSWEB_RATELIMIT_STORAGE_URI: redis://grampsweb_redis:6379/1
+    depends_on:
+      - grampsweb_redis
+    volumes:
+      - ./data/gramps/app/users:/app/users # persist user database
+      - ./data/gramps/app/indexdir:/app/indexdir # persist search index
+      - ./data/gramps/app/thumbnail_cache:/app/thumbnail_cache # persist thumbnails
+      - ./data/gramps/app/cache:/app/cache # persist export and report caches
+      - ./data/gramps/app/secret:/app/secret # persist flask secret
+      - ./data/gramps/app/media:/app/media # persist media files
+      - ./data/gramps/db:/root/.gramps/grampsdb # persist Gramps database
+      - ./data/gramps/tmp:/tmp
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.gramps.rule=Host(`gramps.intimidator.ts.rooday.com`)
+      - traefik.http.services.gramps.loadbalancer.server.port=5000
+      - traefik.http.routers.gramps.entrypoints=websecure
+      - traefik.http.routers.gramps.tls.certresolver=cloudflare
+
+  grampsweb_celery:
+    <<: *grampsweb # YAML merge key copying the entire grampsweb service config
+    networks:
+      - private
+    container_name: grampsweb_celery
+    depends_on:
+      - grampsweb_redis
+    command: celery -A gramps_webapi.celery worker --loglevel=INFO --concurrency=2
+    labels:
+      - traefik.enable=false
+
+  grampsweb_redis:
+    image: docker.io/library/redis:7.2.4-alpine
+    container_name: grampsweb_redis
+    networks:
+      - private
+    restart: unless-stopped
+    labels:
+      - traefik.enable=false

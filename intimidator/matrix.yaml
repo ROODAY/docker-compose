@@ -1,0 +1,83 @@
+# for port mapping, left side is host, right side is container
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: matrix-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${MATRIX_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${MATRIX_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${MATRIX_POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./data/matrix/postgres:/var/lib/postgresql/pgdata
+    networks:
+      - public
+
+  synapse:
+    image: matrixdotorg/synapse:latest
+    container_name: matrix-synapse
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    environment:
+      SYNAPSE_SERVER_NAME: ${MATRIX_SERVER_NAME}
+      SYNAPSE_REPORT_STATS: "no"
+      # POSTGRES_DB: synapse
+      # POSTGRES_USER: synapse
+      # POSTGRES_PASSWORD: synapse_password
+      POSTGRES_USER: ${MATRIX_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${MATRIX_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${MATRIX_POSTGRES_DB}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+    volumes:
+      - ./data/matrix/synapse:/data
+    networks:
+      - public
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.matrix.rule=Host(`${MATRIX_SERVER_NAME}`)
+      - traefik.http.services.matrix.loadbalancer.server.port=8008
+      - traefik.http.routers.matrix.entrypoints=websecure
+      - traefik.http.routers.matrix.tls.certresolver=cloudflare
+
+  coturn:
+    image: coturn/coturn:latest
+    container_name: matrix-coturn
+    restart: unless-stopped
+    command: >
+      -n
+      --external-ip=174.21.209.210
+      --log-file=stdout
+      --min-port=49160
+      --max-port=49200
+      --realm=${MATRIX_SERVER_NAME}
+      --fingerprint
+      --no-multicast-peers
+      --no-cli
+      --lt-cred-mech
+      --use-auth-secret
+      --static-auth-secret=${TURN_SHARED_SECRET}
+    ports:
+      - "3478:3478/udp"
+      - "3478:3478/tcp"
+      - "5349:5349/tcp"
+      - "49160-49200:49160-49200/udp"
+    networks:
+      - public
+
+  wellknown:
+    image: nginx:alpine
+    container_name: matrix-wellknown
+    networks:
+      - public
+    volumes:
+      - ./data/matrix/well-known:/usr/share/nginx/html/.well-known:ro
+      - ./data/matrix/well-known/nginx/wellknown.conf:/etc/nginx/conf.d/wellknown.conf:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.wellknown.rule=Host(`matrix.intimidator.rooday.com`) && PathPrefix(`/.well-known/matrix`)"
+      - "traefik.http.routers.wellknown.entrypoints=websecure"
+      - "traefik.http.routers.wellknown.tls=true"
