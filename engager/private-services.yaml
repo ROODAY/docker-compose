@@ -190,3 +190,33 @@ services:
       - traefik.http.services.docksmith.loadbalancer.server.port=8080
       - traefik.http.routers.docksmith.entrypoints=websecure
       - traefik.http.routers.docksmith.tls.certresolver=cloudflare
+  cleanuparr:
+    image: ghcr.io/cleanuparr/cleanuparr:latest
+    container_name: cleanuparr
+    restart: unless-stopped
+    networks:
+      - private
+    volumes:
+      - ./data/cleanuparr:/config
+      - /mnt/storage/torrents:/data/torrents
+    environment:
+      - PORT=11011
+      - PUID=1000
+      - PGID=1000
+      - UMASK=022
+      - TZ=America/New_York
+    # Health check configuration
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11011/health"]
+      interval: 30s # Check every 30 seconds
+      timeout: 10s # Allow up to 10 seconds for response
+      start_period: 30s # Wait 30 seconds before first check
+      retries: 3 # Mark unhealthy after 3 consecutive failures
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.cleanuparr.rule=Host(`cleanuparr.engager.ts.rooday.com`)
+      - traefik.http.services.cleanuparr.loadbalancer.server.port=11011
+      - traefik.http.routers.cleanuparr.entrypoints=websecure
+      - traefik.http.routers.cleanuparr.tls.certresolver=cloudflare
+
+
