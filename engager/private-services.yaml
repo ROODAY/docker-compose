@@ -47,6 +47,20 @@ services:
       - traefik.http.routers.transmission.entrypoints=websecure
       - traefik.http.routers.transmission.tls.certresolver=cloudflare
       - docksmith.version-pin-major=true
+  transmission-flood:
+    container_name: transmission-flood
+    networks:
+      - private
+    volumes:
+      - /mnt/storage/torrents:/data/torrents
+    image: jesec/flood
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.transmission-flood.rule=Host(`transmission-flood.engager.ts.rooday.com`)
+      - traefik.http.services.transmission-flood.loadbalancer.server.port=3000
+      - traefik.http.routers.transmission-flood.entrypoints=websecure
+      - traefik.http.routers.transmission-flood.tls.certresolver=cloudflare
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
     container_name: bazarr
