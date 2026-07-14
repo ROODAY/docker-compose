@@ -411,3 +411,20 @@ services:
       - ./data/piper:/config
     ports:
       - "10200:10200"
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    networks:
+      - private
+    ports:
+      - "11434:11434"
+    volumes:
+      - /mnt/docker/ollama:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
