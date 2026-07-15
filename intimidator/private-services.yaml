@@ -49,6 +49,7 @@ services:
     networks:
       - private
     volumes:
+      # - ${BASE_DOCKER_VOLUME_PATH}/transmission-flood:/home/download/.local/share/flood
       - /mnt/storage/torrents:/data/torrents
     image: jesec/flood
     restart: unless-stopped
@@ -415,6 +416,8 @@ services:
     image: ollama/ollama:latest
     container_name: ollama
     restart: unless-stopped
+    environment:
+      - OLLAMA_KEEP_ALIVE=-1
     networks:
       - private
     ports:
