@@ -16,7 +16,7 @@ services:
     volumes:
       - /mnt/storage/torrents:/data/torrents
       - /home/rooday/openvpn:/etc/openvpn/custom/
-      - ./data/transmission:/config
+      - ${BASE_DOCKER_VOLUME_PATH}/transmission:/config
     environment:
       - PUID=1000
       - PGID=1000
@@ -68,7 +68,7 @@ services:
       - PGID=1000
       - TZ=America/Los_Angeles
     volumes:
-      - ./data/bazarr:/config
+      - ${BASE_DOCKER_VOLUME_PATH}/bazarr:/config
       - /mnt/storage/media:/data/media
     restart: unless-stopped
     labels:
@@ -87,7 +87,7 @@ services:
       - PGID=1000
       - TZ=America/Los_Angeles
     volumes:
-      - ./data/prowlarr:/config
+      - ${BASE_DOCKER_VOLUME_PATH}/prowlarr:/config
     restart: unless-stopped
     labels:
       - traefik.enable=true
@@ -105,7 +105,7 @@ services:
       - PGID=1000
       - TZ=America/Los_Angeles
     volumes:
-      - ./data/radarr:/config
+      - ${BASE_DOCKER_VOLUME_PATH}/radarr:/config
       - /mnt/storage:/data
     restart: unless-stopped
     labels:
@@ -124,7 +124,7 @@ services:
       - PGID=1000
       - TZ=America/Los_Angeles
     volumes:
-      - ./data/sonarr:/config
+      - ${BASE_DOCKER_VOLUME_PATH}/sonarr:/config
       - /mnt/storage:/data
     restart: unless-stopped
     labels:
@@ -143,7 +143,7 @@ services:
       - PGID=1000
       - TZ=Etc/UTC
     volumes:
-      - ./data/lidarr:/config
+      - ${BASE_DOCKER_VOLUME_PATH}/lidarr:/config
       - /mnt/storage:/data
     ports:
       - 8686:8686
@@ -179,7 +179,7 @@ services:
     init: true
     user: 1000:1000
     volumes:
-      - ./data/recyclarr:/config
+      - ${BASE_DOCKER_VOLUME_PATH}/recyclarr:/config
     environment:
       - TZ=America/Los_Angeles
     labels:
@@ -197,8 +197,8 @@ services:
       - PGID=1000
       - TZ=America/Los_Angeles
     volumes:
-      - ./data/scrutiny/config:/opt/scrutiny/config
-      - ./data/scrutiny/influxdb:/opt/scrutiny/influxdb
+      - ${BASE_DOCKER_VOLUME_PATH}/scrutiny/config:/opt/scrutiny/config
+      - ${BASE_DOCKER_VOLUME_PATH}/scrutiny/influxdb:/opt/scrutiny/influxdb
       - /run/udev:/run/udev:ro
     devices:
       - /dev/nvme0:/dev/nvme0
@@ -243,7 +243,7 @@ services:
     ports:
       - 5006:5006
     volumes:
-      - ./data/actual:/data
+      - ${BASE_DOCKER_VOLUME_PATH}/actual:/data
     labels:
       - traefik.enable=true
       - traefik.http.routers.actual.rule=Host(`actual.rooday.com`)
@@ -259,7 +259,7 @@ services:
     environment:
       - TZ=America/Los_Angeles
     volumes:
-      - ./data/kometa:/config
+      - ${BASE_DOCKER_VOLUME_PATH}/kometa:/config
     restart: unless-stopped
     labels:
       - traefik.enable=false
@@ -295,7 +295,7 @@ services:
     networks:
       - private
     volumes:
-      - ./data/calibre:/config
+      - ${BASE_DOCKER_VOLUME_PATH}/calibre:/config
       - /mnt/tank/fuse/media/books:/config/books
     ports:
       - 48080:8080
@@ -335,7 +335,7 @@ services:
       - public
       - private
     volumes:
-      - ./data/dashy:/app/user-data/
+      - ${BASE_DOCKER_VOLUME_PATH}/dashy:/app/user-data/
     restart: unless-stopped
     labels:
       - traefik.enable=true
@@ -351,7 +351,7 @@ services:
     networks:
       - private
     volumes:
-      - ./data/cleanuparr:/config
+      - ${BASE_DOCKER_VOLUME_PATH}/cleanuparr:/config
       - /mnt/storage/torrents:/data/torrents
     environment:
       - PORT=11011
@@ -386,7 +386,7 @@ services:
       - WHISPER_LANG=en
       - WHISPER_BEAM=5
     volumes:
-      - ./data/whisper:/config
+      - ${BASE_DOCKER_VOLUME_PATH}/whisper:/config
     ports:
       - "10300:10300"
     deploy:
@@ -408,7 +408,7 @@ services:
       - TZ=America/Los_Angeles
       - PIPER_VOICE=en_US-lessac-medium
     volumes:
-      - ./data/piper:/config
+      - ${BASE_DOCKER_VOLUME_PATH}/piper:/config
     ports:
       - "10200:10200"
   ollama:

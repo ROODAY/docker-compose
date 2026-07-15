@@ -18,7 +18,7 @@ services:
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_EXTRA_ARGS=--advertise-tags=tag:container --advertise-exit-node
     volumes:
-      - ./data/tailscale:/var/lib/tailscale
+      - ${BASE_DOCKER_VOLUME_PATH}/tailscale:/var/lib/tailscale
     devices:
       - /dev/net/tun:/dev/net/tun
     cap_add:
@@ -33,8 +33,8 @@ services:
     restart: unless-stopped
     network_mode: service:tailscale
     volumes:
-      - ./data/traefik-tailscale/letsencrypt:/letsencrypt
-      - ./data/traefik-tailscale/dynamic.yml:/dynamic.yml:ro
+      - ${BASE_DOCKER_VOLUME_PATH}/traefik-tailscale/letsencrypt:/letsencrypt
+      - ${BASE_DOCKER_VOLUME_PATH}/traefik-tailscale/dynamic.yml:/dynamic.yml:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       # - /run/user/1000/docker.sock:/var/run/docker.sock:ro
       - /etc/timezone:/etc/timezone:ro
@@ -94,8 +94,8 @@ services:
     networks:
       - public
     volumes:
-      - ./data/traefik/letsencrypt:/letsencrypt
-      - ./data/traefik/dynamic.yml:/dynamic.yml:ro
+      - ${BASE_DOCKER_VOLUME_PATH}/traefik/letsencrypt:/letsencrypt
+      - ${BASE_DOCKER_VOLUME_PATH}/traefik/dynamic.yml:/dynamic.yml:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       # - /run/user/1000/docker.sock:/var/run/docker.sock:ro
       - /etc/timezone:/etc/timezone:ro
@@ -144,7 +144,7 @@ services:
       - PUID=1000
       - PGID=1000
     volumes:
-      - ./data/cloudflare-ddns/ddns.config.json:/config.json
+      - ${BASE_DOCKER_VOLUME_PATH}/cloudflare-ddns/ddns.config.json:/config.json
     restart: unless-stopped
     labels:
       - traefik.enable=false

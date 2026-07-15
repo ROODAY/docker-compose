@@ -11,7 +11,7 @@ services:
       POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - ./data/matrix/postgres:/var/lib/postgresql/pgdata
+      - ${BASE_DOCKER_VOLUME_PATH}/matrix/postgres:/var/lib/postgresql/pgdata
     networks:
       - public
 
@@ -33,7 +33,7 @@ services:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
     volumes:
-      - ./data/matrix/synapse:/data
+      - ${BASE_DOCKER_VOLUME_PATH}/matrix/synapse:/data
     networks:
       - public
     labels:
@@ -74,8 +74,8 @@ services:
     networks:
       - public
     volumes:
-      - ./data/matrix/well-known:/usr/share/nginx/html/.well-known:ro
-      - ./data/matrix/well-known/nginx/wellknown.conf:/etc/nginx/conf.d/wellknown.conf:ro
+      - ${BASE_DOCKER_VOLUME_PATH}/matrix/well-known:/usr/share/nginx/html/.well-known:ro
+      - ${BASE_DOCKER_VOLUME_PATH}/matrix/well-known/nginx/wellknown.conf:/etc/nginx/conf.d/wellknown.conf:ro
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.wellknown.rule=Host(`matrix.intimidator.rooday.com`) && PathPrefix(`/.well-known/matrix`)"

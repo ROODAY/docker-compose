@@ -13,14 +13,14 @@ services:
     depends_on:
       - grampsweb_redis
     volumes:
-      - ./data/gramps/app/users:/app/users # persist user database
-      - ./data/gramps/app/indexdir:/app/indexdir # persist search index
-      - ./data/gramps/app/thumbnail_cache:/app/thumbnail_cache # persist thumbnails
-      - ./data/gramps/app/cache:/app/cache # persist export and report caches
-      - ./data/gramps/app/secret:/app/secret # persist flask secret
-      - ./data/gramps/app/media:/app/media # persist media files
-      - ./data/gramps/db:/root/.gramps/grampsdb # persist Gramps database
-      - ./data/gramps/tmp:/tmp
+      - ${BASE_DOCKER_VOLUME_PATH}/gramps/app/users:/app/users # persist user database
+      - ${BASE_DOCKER_VOLUME_PATH}/gramps/app/indexdir:/app/indexdir # persist search index
+      - ${BASE_DOCKER_VOLUME_PATH}/gramps/app/thumbnail_cache:/app/thumbnail_cache # persist thumbnails
+      - ${BASE_DOCKER_VOLUME_PATH}/gramps/app/cache:/app/cache # persist export and report caches
+      - ${BASE_DOCKER_VOLUME_PATH}/gramps/app/secret:/app/secret # persist flask secret
+      - ${BASE_DOCKER_VOLUME_PATH}/gramps/app/media:/app/media # persist media files
+      - ${BASE_DOCKER_VOLUME_PATH}/gramps/db:/root/.gramps/grampsdb # persist Gramps database
+      - ${BASE_DOCKER_VOLUME_PATH}/gramps/tmp:/tmp
     labels:
       - traefik.enable=true
       - traefik.http.routers.gramps.rule=Host(`gramps.intimidator.ts.rooday.com`)

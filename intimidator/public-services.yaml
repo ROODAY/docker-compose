@@ -36,7 +36,7 @@ services:
       - PGID=1000
       - TZ=America/Los_Angeles
     volumes:
-      - ./data/tautulli:/config
+      - ${BASE_DOCKER_VOLUME_PATH}/tautulli:/config
     restart: unless-stopped
     labels:
       - traefik.enable=true
@@ -71,7 +71,7 @@ services:
       - PGID=1000
       - TZ=America/Los_Angeles
     volumes:
-      - ./data/requestrr:/root/config
+      - ${BASE_DOCKER_VOLUME_PATH}/requestrr:/root/config
     restart: unless-stopped
     labels:
       - traefik.enable=true
@@ -91,7 +91,7 @@ services:
       - TZ=America/Los_Angeles
       - PASSWORD=${LIBRESPEED_PASSWORD}
     volumes:
-      - ./data/librespeed:/config
+      - ${BASE_DOCKER_VOLUME_PATH}/librespeed:/config
     restart: unless-stopped
     labels:
       - traefik.enable=true
@@ -125,7 +125,7 @@ services:
       - public
     image: postgres:16-alpine
     volumes:
-      - ./data/tandoor/postgres:/var/lib/postgresql/data
+      - ${BASE_DOCKER_VOLUME_PATH}/tandoor/postgres:/var/lib/postgresql/data
     env_file:
       - tandoor.env
   tandoor:
@@ -137,8 +137,8 @@ services:
     env_file:
       - tandoor.env
     volumes:
-      - ./data/tandoor/staticfiles:/opt/recipes/staticfiles
-      - ./data/tandoor/mediafiles:/opt/recipes/mediafiles
+      - ${BASE_DOCKER_VOLUME_PATH}/tandoor/staticfiles:/opt/recipes/staticfiles
+      - ${BASE_DOCKER_VOLUME_PATH}/tandoor/mediafiles:/opt/recipes/mediafiles
     labels:
       - traefik.enable=true
       - traefik.http.routers.tandoor.rule=Host(`tandoor.rooday.com`)
@@ -170,7 +170,7 @@ services:
       mail__options__auth__pass: ${GHOST_MAIL_PASSWORD}
       url: https://blog.rooday.com
     volumes:
-      - ./data/ghost:/var/lib/ghost/content
+      - ${BASE_DOCKER_VOLUME_PATH}/ghost:/var/lib/ghost/content
     labels:
       - traefik.enable=true
       - traefik.http.routers.ghost.rule=Host(`blog.rooday.com`)
@@ -186,7 +186,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${GHOST_DB_PASSWORD}
     volumes:
-      - ./data/ghostdb:/var/lib/mysql
+      - ${BASE_DOCKER_VOLUME_PATH}/ghostdb:/var/lib/mysql
   calibre-web:
     image: lscr.io/linuxserver/calibre-web:latest
     container_name: calibre-web
@@ -199,7 +199,7 @@ services:
       - DOCKER_MODS=linuxserver/mods:universal-calibre #optional
       - OAUTHLIB_RELAX_TOKEN_SCOPE=1 #optional
     volumes:
-      - ./data/calibre-web:/config
+      - ${BASE_DOCKER_VOLUME_PATH}/calibre-web:/config
       - /mnt/tank/fuse/media/books:/books
     ports:
       - 8083:8083
@@ -217,7 +217,7 @@ services:
       - public
       - private
     volumes:
-      - ./data/uptime-kuma:/data
+      - ${BASE_DOCKER_VOLUME_PATH}/uptime-kuma:/data
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
     labels:
@@ -237,7 +237,7 @@ services:
       - PLEX_TOKEN=${PAL_PLEX_TOKEN}
       - TZ=America/Los_Angeles
     volumes:
-      - ./data/plex-auto-languages:/config
+      - ${BASE_DOCKER_VOLUME_PATH}/plex-auto-languages:/config
     restart: unless-stopped
     labels:
       - traefik.enable=false
