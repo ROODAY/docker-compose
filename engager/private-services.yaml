@@ -49,12 +49,16 @@ services:
       - docksmith.version-pin-major=true
   transmission-flood:
     container_name: transmission-flood
-    networks:
-      - private
-    volumes:
-      - /mnt/storage/torrents:/data/torrents
     image: jesec/flood
     restart: unless-stopped
+    networks:
+      - private
+    user: "1000:1000"
+    environment:
+      - HOME=/config
+    volumes:
+      - ./data/transmission-flood:/config  
+      - /mnt/storage/torrents:/data/torrents
     labels:
       - traefik.enable=true
       - traefik.http.routers.transmission-flood.rule=Host(`transmission-flood.engager.ts.rooday.com`)
@@ -173,7 +177,7 @@ services:
       - traefik.http.routers.flaresolverr.entrypoints=websecure
       - traefik.http.routers.flaresolverr.tls.certresolver=cloudflare
   recyclarr:
-    image: ghcr.io/recyclarr/recyclarr:latest
+    image: ghcr.io/recyclarr/recyclarr:8
     container_name: recyclarr
     networks:
       - private
