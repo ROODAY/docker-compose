@@ -389,6 +389,7 @@ services:
       - WHISPER_MODEL=medium-int8
       - WHISPER_LANG=en
       - WHISPER_BEAM=5
+      - WYO_WHISPER_COMPUTE_TYPE=int8
     volumes:
       - ${BASE_DOCKER_VOLUME_PATH}/whisper:/config
     ports:
