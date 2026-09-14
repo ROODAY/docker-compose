@@ -144,7 +144,7 @@ services:
       - traefik.http.routers.nextcloud.entrypoints=websecure
       - traefik.http.routers.nextcloud.tls.certresolver=cloudflare
       - traefik.http.routers.nextcloud.service=nextcloud
-      - traefik.http.services.nextcloud.loadbalancer.server.url=https://192.168.0.187
+      - traefik.http.services.nextcloud.loadbalancer.server.url=https://192.168.0.60
       - traefik.http.services.nextcloud.loadbalancer.serversTransport=insecure-nc@file
       - traefik.http.services.nextcloud.loadbalancer.passhostheader=true
 
