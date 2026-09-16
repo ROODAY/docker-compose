@@ -56,24 +56,6 @@ services:
       options:
         max-size: 10m
     restart: unless-stopped
-  flood:
-    container_name: flood
-    image: jesec/flood
-    restart: unless-stopped
-    networks:
-      - private
-    user: "1000:1000"
-    environment:
-      - HOME=/config
-    volumes:
-      - ${BASE_DOCKER_VOLUME_PATH}/transmission-flood:/config
-      - /mnt/storage/torrents:/data/torrents
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.flood.rule=Host(`flood.intimidator.ts.rooday.com`)
-      - traefik.http.services.flood.loadbalancer.server.port=3000
-      - traefik.http.routers.flood.entrypoints=websecure
-      - traefik.http.routers.flood.tls.certresolver=cloudflare
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
     container_name: bazarr
