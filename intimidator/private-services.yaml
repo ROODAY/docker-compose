@@ -1,51 +1,63 @@
 # for port mapping, left side is host, right side is container
 services:
-  transmission-openvpn:
-    container_name: transmission
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
     cap_add:
       - NET_ADMIN
+    devices:
+      - /dev/net/tun
     dns:
       - 1.1.1.1
       - 1.0.0.1
     networks:
       - private
-    devices:
-      - /dev/net/tun
-    sysctls:
-      - net.ipv6.conf.all.disable_ipv6=0
+    ports:
+      - 9091:9091 # qbittorrent webui, published HERE not on qbittorrent
+      - ${TRANSMISSION_PEER_PORT}:${TRANSMISSION_PEER_PORT}
+      - ${TRANSMISSION_PEER_PORT}:${TRANSMISSION_PEER_PORT}/udp
     volumes:
-      - /mnt/storage/torrents:/data/torrents
-      - /home/rooday/openvpn:/etc/openvpn/custom/
-      - ${BASE_DOCKER_VOLUME_PATH}/transmission:/config
+      - ${BASE_DOCKER_VOLUME_PATH}/gluetun:/gluetun
+      - /home/rooday/openvpn:/gluetun/custom/
+      - /home/rooday/openvpn/${GLUETUN_VPN_CONFIG}.conf:/gluetun/wireguard/wg0.conf:ro
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TRANSMISSION_RPC_AUTHENTICATION_REQUIRED=true
-      - TRANSMISSION_RPC_USERNAME=${TRANSMISSION_RPC_USERNAME}
-      - TRANSMISSION_RPC_PASSWORD=${TRANSMISSION_RPC_PASSWORD}
-      - TRANSMISSION_WEB_UI=combustion
-      - TRANSMISSION_DOWNLOAD_DIR=/data/torrents/completed
-      - TRANSMISSION_INCOMPLETE_DIR=/data/torrents/incomplete
-      - TRANSMISSION_PEER_PORT=${TRANSMISSION_PEER_PORT}
-      - OPENVPN_PROVIDER=custom
-      - OPENVPN_CONFIG=${TRANSMISSION_OPENVPN_CONFIG}
-      - OPENVPN_USERNAME=${TRANSMISSION_OPENVPN_USERNAME}
-      - OPENVPN_PASSWORD=${TRANSMISSION_OPENVPN_PASSWORD}
-      - LOCAL_NETWORK=10.0.0.0/24
+      - VPN_SERVICE_PROVIDER=custom
+      - VPN_TYPE=wireguard
+      - FIREWALL_OUTBOUND_SUBNETS=10.0.0.0/24
+      - TZ=America/Los_Angeles
     logging:
       driver: json-file
       options:
         max-size: 10m
-    image: haugene/transmission-openvpn
     restart: unless-stopped
     labels:
       - traefik.enable=true
-      - traefik.http.routers.transmission.rule=Host(`transmission.intimidator.ts.rooday.com`)
-      - traefik.http.services.transmission.loadbalancer.server.port=9091
-      - traefik.http.routers.transmission.entrypoints=websecure
-      - traefik.http.routers.transmission.tls.certresolver=cloudflare
-  transmission-flood:
-    container_name: transmission-flood
+      - traefik.http.routers.qbittorrent.rule=Host(`qbit.intimidator.ts.rooday.com`)
+      - traefik.http.services.qbittorrent.loadbalancer.server.port=9091
+      - traefik.http.routers.qbittorrent.entrypoints=websecure
+      - traefik.http.routers.qbittorrent.tls.certresolver=cloudflare
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent
+    container_name: qbittorrent
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    volumes:
+      - /mnt/storage/torrents:/data/torrents
+      - ${BASE_DOCKER_VOLUME_PATH}/qbittorrent:/config
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+      - WEBUI_PORT=9091
+      - TORRENTING_PORT=${TRANSMISSION_PEER_PORT}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+    restart: unless-stopped
+  flood:
+    container_name: flood
     image: jesec/flood
     restart: unless-stopped
     networks:
@@ -58,10 +70,10 @@ services:
       - /mnt/storage/torrents:/data/torrents
     labels:
       - traefik.enable=true
-      - traefik.http.routers.transmission-flood.rule=Host(`transmission-flood.intimidator.ts.rooday.com`)
-      - traefik.http.services.transmission-flood.loadbalancer.server.port=3000
-      - traefik.http.routers.transmission-flood.entrypoints=websecure
-      - traefik.http.routers.transmission-flood.tls.certresolver=cloudflare
+      - traefik.http.routers.flood.rule=Host(`flood.intimidator.ts.rooday.com`)
+      - traefik.http.services.flood.loadbalancer.server.port=3000
+      - traefik.http.routers.flood.entrypoints=websecure
+      - traefik.http.routers.flood.tls.certresolver=cloudflare
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
     container_name: bazarr
@@ -189,7 +201,7 @@ services:
     labels:
       - traefik.enable=false
   scrutiny:
-    image: ghcr.io/analogj/scrutiny:master-omnibus
+    image: ghcr.io/analogj/scrutiny:v0.9.4-omnibus
     container_name: scrutiny
     networks:
       - private
