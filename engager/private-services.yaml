@@ -207,7 +207,7 @@ services:
       - private
     volumes:
       - ./data/cleanuparr:/config
-      - /mnt/storage/torrents:/data/torrents
+      - /mnt/storage:/data
     environment:
       - PORT=11011
       - PUID=1000
