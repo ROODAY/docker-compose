@@ -350,7 +350,7 @@ services:
       - private
     volumes:
       - ${BASE_DOCKER_VOLUME_PATH}/cleanuparr:/config
-      - /mnt/storage/torrents:/data/torrents
+      - /mnt/storage:/data
     environment:
       - PORT=11011
       - PUID=1000
