@@ -258,25 +258,6 @@ services:
     restart: unless-stopped
     labels:
       - traefik.enable=false
-  immich-power-tools:
-    container_name: immich_power_tools
-    image: ghcr.io/varun-raj/immich-power-tools:latest
-    networks:
-      - public
-      - private
-    environment:
-      HOSTNAME: "0.0.0.0"
-    ports:
-      - 8001:3000
-    env_file:
-      - .env
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.immich-power-tools.rule=Host(`power-tools.immich.intimidator.ts.rooday.com`)
-      - traefik.http.services.immich-power-tools.loadbalancer.server.port=3000
-      - traefik.http.routers.immich-power-tools.entrypoints=websecure
-      - traefik.http.routers.immich-power-tools.tls.certresolver=cloudflare
-      - traefik.docker.network=private
   calibre:
     image: lscr.io/linuxserver/calibre:latest
     container_name: calibre
