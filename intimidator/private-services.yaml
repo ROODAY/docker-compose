@@ -197,12 +197,12 @@ services:
       - /run/udev:/run/udev:ro
     devices:
       - /dev/nvme0:/dev/nvme0
-      - /dev/sda:/dev/sda
-      - /dev/sdb:/dev/sdb
-      - /dev/sdc:/dev/sdc
-      - /dev/sdd:/dev/sdd
-      - /dev/sde:/dev/sde
-      # - /dev/sdf:/dev/sdf
+      - /dev/disk/by-id/ata-Samsung_SSD_840_Series_S14CNSAD236062B:/dev/sda    # old boot SSD
+      - /dev/disk/by-id/ata-HGST_HUH721010ALE600_2YJPRGGD:/dev/sdb             # disk3 (9.1T)
+      - /dev/disk/by-id/ata-Samsung_SSD_860_QVO_1TB_S59HNG0N402772V:/dev/sdc   # disk2 (1T)
+      - /dev/disk/by-id/ata-ST8000NM0016-1U3101_ZA201A0C:/dev/sdd              # disk1 (7.3T)
+      - /dev/disk/by-id/ata-ST12000VN0007-2GS116_ZJV3F9K8:/dev/sde             # tank drive 1
+      - /dev/disk/by-id/ata-ST12000VN0007-2GS116_ZJV15X25:/dev/sdf             # tank drive 2
     restart: unless-stopped
     labels:
       - traefik.enable=true
