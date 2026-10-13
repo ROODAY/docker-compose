@@ -11,7 +11,8 @@ services:
       POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - ${BASE_DOCKER_VOLUME_PATH}/matrix/postgres:/var/lib/postgresql/pgdata
+      #- ${BASE_DOCKER_VOLUME_PATH}/matrix/postgres:/var/lib/postgresql/pgdata
+      - ${BASE_DOCKER_VOLUME_PATH}/matrix/postgres:/var/lib/postgresql/data
     networks:
       - public
 
