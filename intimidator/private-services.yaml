@@ -7,9 +7,6 @@ services:
       - NET_ADMIN
     devices:
       - /dev/net/tun
-    dns:
-      - 1.1.1.1
-      - 1.0.0.1
     networks:
       - private
     ports:
@@ -23,8 +20,8 @@ services:
     environment:
       - VPN_SERVICE_PROVIDER=custom
       - VPN_TYPE=wireguard
-      - FIREWALL_OUTBOUND_SUBNETS=10.0.0.0/24
       - TZ=America/Los_Angeles
+      - DNS_UPSTREAM_RESOLVER_TYPE=doh
     logging:
       driver: json-file
       options:
@@ -383,7 +380,7 @@ services:
       - WHISPER_MODEL=medium-int8
       - WHISPER_LANG=en
       - WHISPER_BEAM=5
-      - WYO_WHISPER_COMPUTE_TYPE=int8
+      - WHISPER_COMPUTE_TYPE=int8
     volumes:
       - ${BASE_DOCKER_VOLUME_PATH}/whisper:/config
     ports:
