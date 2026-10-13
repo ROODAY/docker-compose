@@ -368,7 +368,7 @@ services:
       - traefik.http.routers.cleanuparr.entrypoints=websecure
       - traefik.http.routers.cleanuparr.tls.certresolver=cloudflare
   whisper:
-    image: lscr.io/linuxserver/faster-whisper:gpu-legacy
+    image: lscr.io/linuxserver/faster-whisper:gpu-legacy-v3.8.1-ls73
     container_name: wyoming-whisper-gpu
     restart: unless-stopped
     networks:
@@ -426,3 +426,21 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+  ollama-warmup:
+    image: curlimages/curl:latest
+    container_name: ollama-warmup
+    restart: unless-stopped
+    networks:
+      - private
+    depends_on:
+      - ollama
+    entrypoint:
+      - sh
+      - -c
+      - |
+        until curl -sf http://ollama:11434/api/version >/dev/null; do sleep 2; done
+        while true; do
+          curl -s http://ollama:11434/api/generate \
+            -d '{"model":"qwen3:4b-instruct","prompt":"","keep_alive":-1,"options":{"num_ctx":8192}}' >/dev/null
+          sleep 300
+        done
