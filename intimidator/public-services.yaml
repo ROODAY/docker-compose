@@ -45,18 +45,21 @@ services:
       - traefik.http.routers.tautulli.entrypoints=websecure
       - traefik.http.routers.tautulli.tls.certresolver=cloudflare
   synclounge:
-    image: lscr.io/linuxserver/synclounge:latest
-    # image: isolation0230/synclounge:dev-2025-09-11-7
+    image: ghcr.io/chrisae9/synclounge:latest
     container_name: synclounge
     networks:
       - public
     environment:
-      - TZ=America/Los_Angeles
-      - AUTH_LIST=${SYNCLOUNGE_AUTH_LIST}
+      - 'AUTHENTICATION={"mechanism":"plex","type":["server","user"],"authorized":[${SYNCLOUNGE_AUTH_LIST}]}'
+      - PUBLIC_ORIGIN=https://synclounge.rooday.com
+      - TRUST_PROXY=uniquelocal
+      - ROOM_STATE_PATH=/data/private/room-state.json
+    volumes:
+      - ${BASE_DOCKER_VOLUME_PATH}/synclounge:/data
     restart: unless-stopped
     labels:
       - traefik.enable=true
-      - traefik.http.routers.synclounge.rule=Host(`synclounge.intimidator.rooday.com`)
+      - traefik.http.routers.synclounge.rule=Host(`synclounge.rooday.com`)
       - traefik.http.services.synclounge.loadbalancer.server.port=8088
       - traefik.http.routers.synclounge.entrypoints=websecure
       - traefik.http.routers.synclounge.tls.certresolver=cloudflare
