@@ -50,7 +50,7 @@ services:
     networks:
       - public
     environment:
-      - 'AUTHENTICATION={"mechanism":"plex","type":["server","user"],"authorized":[${SYNCLOUNGE_AUTH_LIST}]}'
+      - 'AUTHENTICATION={"mechanism":"plex","type":["server"],"authorized":[${SYNCLOUNGE_AUTH_LIST}]}'
       - PUBLIC_ORIGIN=https://synclounge.rooday.com
       - TRUST_PROXY=uniquelocal
       - ROOM_STATE_PATH=/data/private/room-state.json
