@@ -48,6 +48,10 @@ services:
       # Without this, Traefik picks one of a multi-network container's IPs
       # arbitrarily and can dial an address it cannot reach.
       - --providers.docker.network=private
+      # Only route containers that opt in with traefik.enable=true. Backends
+      # sharing another container's netns (qbittorrent via gluetun) have no
+      # ports of their own and used to log "port is missing" here.
+      - --providers.docker.exposedbydefault=false
       - --providers.file.filename=/dynamic.yml
       - --api
       - --entrypoints.web.address=:80
@@ -104,6 +108,8 @@ services:
       - --providers.docker=true
       # This proxy only has a route to the `public` network.
       - --providers.docker.network=public
+      # Only route containers that opt in with traefik.enable=true.
+      - --providers.docker.exposedbydefault=false
       - --providers.file.filename=/dynamic.yml
       - --entrypoints.web.address=:80
       - --entrypoints.web.http.redirections.entryPoint.to=websecure
