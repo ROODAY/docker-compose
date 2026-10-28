@@ -61,6 +61,7 @@ services:
       # qbittorrent shares gluetun's network namespace, so it must restart
       # whenever docksmith recreates gluetun.
       - docksmith.restart-after=gluetun
+      - docksmith.version-pin-patch=true
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
     container_name: bazarr
@@ -106,6 +107,7 @@ services:
       - traefik.http.services.prowlarr.loadbalancer.server.port=9696
       - traefik.http.routers.prowlarr.entrypoints=websecure
       - traefik.http.routers.prowlarr.tls.certresolver=cloudflare
+      - docksmith.version-pin-patch=true
   radarr:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
@@ -189,7 +191,7 @@ services:
       - TZ=America/New_York
     labels:
       - traefik.enable=false
-      - docksmith.version-pin-major=true
+      - docksmith.version-pin-patch=true
   docksmith:
     image: ghcr.io/rooday/docksmith:main
     container_name: docksmith
@@ -260,3 +262,4 @@ services:
       - traefik.http.services.cleanuparr.loadbalancer.server.port=11011
       - traefik.http.routers.cleanuparr.entrypoints=websecure
       - traefik.http.routers.cleanuparr.tls.certresolver=cloudflare
+      - docksmith.version-pin-patch=true
