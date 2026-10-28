@@ -210,30 +210,11 @@ services:
       # reads /root/.docker/config.json (see GET /api/docker-config).
       - /home/rooday/.docker/config.json:/root/.docker/config.json:ro
     labels:
-      - docksmith.ignore=true
       - traefik.enable=true
       - traefik.http.routers.docksmith.rule=Host(`docksmith.engager.ts.rooday.com`)
       - traefik.http.services.docksmith.loadbalancer.server.port=8080
       - traefik.http.routers.docksmith.entrypoints=websecure
       - traefik.http.routers.docksmith.tls.certresolver=cloudflare
-  # docksmith:
-  #   image: ghcr.io/chrisae9/docksmith:latest
-  #   container_name: docksmith
-  #   user: root
-  #   networks:
-  #     - public
-  #     - private
-  #   restart: unless-stopped
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #     - ./data/docksmith:/data
-  #     - /home/rooday/docker-compose:/home/rooday/docker-compose:rw
-  #   labels:
-  #     - traefik.enable=true
-  #     - traefik.http.routers.docksmith.rule=Host(`docksmith.engager.ts.rooday.com`)
-  #     - traefik.http.services.docksmith.loadbalancer.server.port=8080
-  #     - traefik.http.routers.docksmith.entrypoints=websecure
-  #     - traefik.http.routers.docksmith.tls.certresolver=cloudflare
   cleanuparr:
     image: ghcr.io/cleanuparr/cleanuparr:2.10.12
     container_name: cleanuparr
