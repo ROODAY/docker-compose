@@ -182,9 +182,11 @@ services:
       - traefik.enable=false
       - docksmith.version-pin-major=true
   docksmith:
-    image: ghcr.io/chrisae9/docksmith:latest
+    image: ghcr.io/rooday/docksmith:main
     container_name: docksmith
     user: root
+    environment:
+      - TZ=America/Los_Angeles
     networks:
       - public
       - private
@@ -194,11 +196,30 @@ services:
       - ./data/docksmith:/data
       - /home/rooday/docker-compose:/home/rooday/docker-compose:rw
     labels:
+      - docksmith.ignore=true
       - traefik.enable=true
       - traefik.http.routers.docksmith.rule=Host(`docksmith.engager.ts.rooday.com`)
       - traefik.http.services.docksmith.loadbalancer.server.port=8080
       - traefik.http.routers.docksmith.entrypoints=websecure
       - traefik.http.routers.docksmith.tls.certresolver=cloudflare
+  # docksmith:
+  #   image: ghcr.io/chrisae9/docksmith:latest
+  #   container_name: docksmith
+  #   user: root
+  #   networks:
+  #     - public
+  #     - private
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - ./data/docksmith:/data
+  #     - /home/rooday/docker-compose:/home/rooday/docker-compose:rw
+  #   labels:
+  #     - traefik.enable=true
+  #     - traefik.http.routers.docksmith.rule=Host(`docksmith.engager.ts.rooday.com`)
+  #     - traefik.http.services.docksmith.loadbalancer.server.port=8080
+  #     - traefik.http.routers.docksmith.entrypoints=websecure
+  #     - traefik.http.routers.docksmith.tls.certresolver=cloudflare
   cleanuparr:
     image: ghcr.io/cleanuparr/cleanuparr:latest
     container_name: cleanuparr
