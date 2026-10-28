@@ -26,8 +26,9 @@ services:
       - traefik.http.services.plex.loadbalancer.server.port=32400
       - traefik.http.routers.plex.entrypoints=websecure
       - traefik.http.routers.plex.tls.certresolver=cloudflare
+      - docksmith.version-pin-patch=true
   kometa:
-    image: kometateam/kometa:latest
+    image: kometateam/kometa:v2.5.3
     container_name: kometa
     networks:
       - public
@@ -38,6 +39,7 @@ services:
     restart: unless-stopped
     labels:
       - traefik.enable=false
+      - docksmith.version-pin-patch=true
   tautulli:
     image: lscr.io/linuxserver/tautulli:latest
     container_name: tautulli
@@ -60,6 +62,7 @@ services:
       - traefik.http.services.tautulli.loadbalancer.server.port=8181
       - traefik.http.routers.tautulli.entrypoints=websecure
       - traefik.http.routers.tautulli.tls.certresolver=cloudflare
+      - docksmith.version-pin-patch=true
   librespeed:
     image: lscr.io/linuxserver/librespeed:latest
     container_name: librespeed
@@ -81,6 +84,7 @@ services:
       - traefik.http.services.librespeed.loadbalancer.server.port=80
       - traefik.http.routers.librespeed.entrypoints=websecure
       - traefik.http.routers.librespeed.tls.certresolver=cloudflare
+      - docksmith.version-pin-patch=true
   corsproxy:
     image: imjacobclark/cors-container:latest
     container_name: corsproxy
@@ -99,7 +103,7 @@ services:
       - traefik.http.routers.corsproxy.entrypoints=websecure
       - traefik.http.routers.corsproxy.tls.certresolver=cloudflare
   plexautolanguages:
-    image: remirigal/plex-auto-languages:latest
+    image: remirigal/plex-auto-languages:v1.2.3
     container_name: PlexAutoLanguages
     networks:
       - public
@@ -112,3 +116,4 @@ services:
     restart: unless-stopped
     labels:
       - traefik.enable=false
+      - docksmith.version-pin-patch=true
