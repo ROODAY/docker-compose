@@ -102,7 +102,6 @@ services:
       - traefik.http.services.corsproxy.loadbalancer.server.port=3000
       - traefik.http.routers.corsproxy.entrypoints=websecure
       - traefik.http.routers.corsproxy.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true
   plexautolanguages:
     image: remirigal/plex-auto-languages:v1.2.3
     container_name: PlexAutoLanguages
