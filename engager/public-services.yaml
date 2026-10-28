@@ -90,6 +90,9 @@ services:
       - 3333:3000
     restart: unless-stopped
     labels:
+      # This image only publishes a `latest` tag on Docker Hub, so there is no
+      # version to pin to.
+      - docksmith.allow-latest=true
       - traefik.enable=true
       - traefik.http.routers.corsproxy.rule=Host(`corsproxy.engager.rooday.com`)
       - traefik.http.services.corsproxy.loadbalancer.server.port=3000

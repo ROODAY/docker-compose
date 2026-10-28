@@ -56,6 +56,10 @@ services:
       options:
         max-size: 10m
     restart: unless-stopped
+    labels:
+      # qbittorrent shares gluetun's network namespace, so it must restart
+      # whenever docksmith recreates gluetun.
+      - docksmith.restart-after=gluetun
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
     container_name: bazarr

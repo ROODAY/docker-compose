@@ -44,6 +44,10 @@ services:
     command:
       - --accesslog=true
       - --providers.docker=true
+      # traefik-ts only has a route to the `private` network (via tailscale).
+      # Without this, Traefik picks one of a multi-network container's IPs
+      # arbitrarily and can dial an address it cannot reach.
+      - --providers.docker.network=private
       - --providers.file.filename=/dynamic.yml
       - --api
       - --entrypoints.web.address=:80
@@ -73,6 +77,9 @@ services:
       - traefik.http.services.proxmox.loadbalancer.serversTransport=insecure@file
       - traefik.http.services.proxmox.loadbalancer.passhostheader=true
       - docksmith.version-pin-major=true
+      # traefik-ts shares tailscale's network namespace, so it must restart
+      # whenever docksmith recreates tailscale.
+      - docksmith.restart-after=tailscale
   traefik:
     image: traefik:latest
     container_name: traefik
@@ -95,6 +102,8 @@ services:
       - --accesslog=true
       - --api
       - --providers.docker=true
+      # This proxy only has a route to the `public` network.
+      - --providers.docker.network=public
       - --providers.file.filename=/dynamic.yml
       - --entrypoints.web.address=:80
       - --entrypoints.web.http.redirections.entryPoint.to=websecure
