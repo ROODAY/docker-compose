@@ -199,6 +199,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/docksmith:/data
       - /home/rooday/docker-compose:/home/rooday/docker-compose:rw
+      # Registry credentials for private images; docksmith runs as root so it
+      # reads /root/.docker/config.json (see GET /api/docker-config).
+      - /home/rooday/.docker/config.json:/root/.docker/config.json:ro
     labels:
       - docksmith.ignore=true
       - traefik.enable=true
