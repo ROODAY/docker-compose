@@ -1,7 +1,7 @@
 # for port mapping, left side is host, right side is container
 services:
   plex:
-    image: lscr.io/linuxserver/plex:latest
+    image: lscr.io/linuxserver/plex:1.43.5.11079-b3b13e506-ls330
     container_name: plex
     networks:
       - public
@@ -41,7 +41,7 @@ services:
       - traefik.enable=false
       - docksmith.version-pin-patch=true
   tautulli:
-    image: lscr.io/linuxserver/tautulli:latest
+    image: lscr.io/linuxserver/tautulli:v2.18.2-ls249
     container_name: tautulli
     networks:
       - public
@@ -64,7 +64,7 @@ services:
       - traefik.http.routers.tautulli.tls.certresolver=cloudflare
       - docksmith.version-pin-patch=true
   librespeed:
-    image: lscr.io/linuxserver/librespeed:latest
+    image: lscr.io/linuxserver/librespeed:v6.3.1-ls298
     container_name: librespeed
     networks:
       - public
