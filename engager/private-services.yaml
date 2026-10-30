@@ -192,7 +192,7 @@ services:
       - traefik.enable=false
       - docksmith.version-pin-patch=true
   docksmith:
-    image: ghcr.io/rooday/docksmith:main
+    image: ghcr.io/rooday/docksmith:0.7.11
     container_name: docksmith
     user: root
     environment:
