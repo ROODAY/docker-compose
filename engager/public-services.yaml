@@ -41,7 +41,7 @@ services:
       - traefik.enable=false
       - docksmith.version-pin-patch=true
   tautulli:
-    image: lscr.io/linuxserver/tautulli:v2.18.2-ls249
+    image: lscr.io/linuxserver/tautulli:v2.18.2-ls250
     container_name: tautulli
     networks:
       - public

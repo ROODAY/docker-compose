@@ -196,7 +196,7 @@ services:
     container_name: docksmith
     user: root
     environment:
-      - TZ=America/Los_Angeles
+      - TZ=America/New_York
     networks:
       - public
       - private
