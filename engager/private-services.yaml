@@ -63,7 +63,7 @@ services:
       - docksmith.restart-after=gluetun
       - docksmith.version-pin-patch=true
   bazarr:
-    image: lscr.io/linuxserver/bazarr:v1.6.2-ls370
+    image: lscr.io/linuxserver/bazarr:v1.6.2-ls371
     container_name: bazarr
     networks:
       - private
@@ -86,7 +86,7 @@ services:
       - traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto = https
       - docksmith.version-pin-patch=true
   prowlarr:
-    image: lscr.io/linuxserver/prowlarr:2.7.0.5723-ls166
+    image: lscr.io/linuxserver/prowlarr:2.7.0.5723-ls167
     container_name: prowlarr
     networks:
       - private
@@ -109,7 +109,7 @@ services:
       - traefik.http.routers.prowlarr.tls.certresolver=cloudflare
       - docksmith.version-pin-patch=true
   radarr:
-    image: lscr.io/linuxserver/radarr:6.4.4.10685-ls324
+    image: lscr.io/linuxserver/radarr:6.4.4.10685-ls325
     container_name: radarr
     networks:
       - private
@@ -192,7 +192,7 @@ services:
       - traefik.enable=false
       - docksmith.version-pin-patch=true
   docksmith:
-    image: ghcr.io/rooday/docksmith:0.7.11
+    image: ghcr.io/chrisae9/docksmith:0.9.0
     container_name: docksmith
     user: root
     environment:
