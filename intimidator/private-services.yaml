@@ -296,7 +296,6 @@ services:
       - TZ=America/Los_Angeles
     volumes:
       - /home/rooday/obsidian-scripts-server/.env:/usr/src/app/.env
-      - /home/rooday/obsidian-scripts-server/src/fitbit_refresh_token.secret:/usr/src/app/src/fitbit_refresh_token.secret
     restart: unless-stopped
     labels:
       - traefik.enable=true
