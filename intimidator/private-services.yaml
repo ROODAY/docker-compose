@@ -424,3 +424,27 @@ services:
             -d '{"model":"qwen3:4b-instruct","prompt":"","keep_alive":-1,"options":{"num_ctx":8192}}' >/dev/null
           sleep 300
         done
+  docksmith:
+    image: ghcr.io/chrisae9/docksmith:0.9.0
+    container_name: docksmith
+    user: root
+    environment:
+      - TZ=America/Los_Angeles
+    networks:
+      - public
+      - private
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${BASE_DOCKER_VOLUME_PATH}/docksmith:/data
+      - /home/rooday/docker-compose:/home/rooday/docker-compose:rw
+      # Registry credentials for private images; docksmith runs as root so it
+      # reads /root/.docker/config.json (see GET /api/docker-config).
+      - /home/rooday/.docker/config.json:/root/.docker/config.json:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.docksmith.rule=Host(`docksmith.intimidator.ts.rooday.com`)
+      - traefik.http.services.docksmith.loadbalancer.server.port=8080
+      - traefik.http.routers.docksmith.entrypoints=websecure
+      - traefik.http.routers.docksmith.tls.certresolver=cloudflare
+      - docksmith.version-pin-patch=true
