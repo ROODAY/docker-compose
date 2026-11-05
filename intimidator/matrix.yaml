@@ -46,7 +46,7 @@ services:
       - traefik.http.routers.matrix.tls.certresolver=cloudflare
       - docksmith.version-pin-patch=true
   coturn:
-    image: coturn/coturn:latest
+    image: coturn/coturn:4.18.0
     container_name: matrix-coturn
     restart: unless-stopped
     command: >
@@ -60,7 +60,7 @@ services:
     networks:
       - public
   wellknown:
-    image: nginx:alpine
+    image: nginx:1.31.8
     container_name: matrix-wellknown
     restart: unless-stopped
     networks:

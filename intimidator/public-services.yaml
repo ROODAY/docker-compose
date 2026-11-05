@@ -1,7 +1,7 @@
 # for port mapping, left side is host, right side is container
 services:
   plex:
-    image: lscr.io/linuxserver/plex:latest
+    image: lscr.io/linuxserver/plex:1.43.5.11079-b3b13e506-ls331
     container_name: plex
     networks:
       - public
@@ -28,7 +28,7 @@ services:
       - traefik.http.routers.plex.tls.certresolver=cloudflare
       - docksmith.version-pin-patch=true
   tautulli:
-    image: lscr.io/linuxserver/tautulli:latest
+    image: lscr.io/linuxserver/tautulli:v2.18.2-ls250
     container_name: tautulli
     networks:
       - public
@@ -46,7 +46,7 @@ services:
       - traefik.http.routers.tautulli.entrypoints=websecure
       - traefik.http.routers.tautulli.tls.certresolver=cloudflare
   synclounge:
-    image: ghcr.io/chrisae9/synclounge:latest
+    image: ghcr.io/chrisae9/synclounge:6.4.21
     container_name: synclounge
     networks:
       - public
@@ -85,7 +85,7 @@ services:
       - traefik.http.routers.requestrr.tls.certresolver=cloudflare
       - traefik.docker.network=public
   librespeed:
-    image: lscr.io/linuxserver/librespeed:latest
+    image: lscr.io/linuxserver/librespeed:v6.3.1-ls299
     container_name: librespeed
     networks:
       - public
@@ -137,7 +137,7 @@ services:
       - docksmith.version-pin-patch=true
   tandoor:
     restart: unless-stopped
-    image: vabene1111/recipes
+    image: vabene1111/recipes:2.7.2
     container_name: tandoor
     networks:
       - public
@@ -196,7 +196,7 @@ services:
     volumes:
       - ${BASE_DOCKER_VOLUME_PATH}/ghostdb:/var/lib/mysql
   calibre-web:
-    image: lscr.io/linuxserver/calibre-web:latest
+    image: lscr.io/linuxserver/calibre-web:0.6.27-ls408
     container_name: calibre-web
     networks:
       - public
@@ -219,7 +219,7 @@ services:
       - traefik.http.routers.calibre-web.entrypoints=websecure
       - traefik.http.routers.calibre-web.tls.certresolver=cloudflare
   uptime-kuma:
-    image: louislam/uptime-kuma:1
+    image: louislam/uptime-kuma:2.5.9
     container_name: uptime-kuma
     networks:
       - public
@@ -236,7 +236,7 @@ services:
       - traefik.http.routers.kuma.tls.certresolver=cloudflare
       - traefik.docker.network=public
   plexautolanguages:
-    image: remirigal/plex-auto-languages:latest
+    image: remirigal/plex-auto-languages:v1.2.3
     container_name: PlexAutoLanguages
     networks:
       - public

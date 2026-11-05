@@ -1,7 +1,7 @@
 # for port mapping, left side is host, right side is container
 services:
   influxdb:
-    image: influxdb:latest
+    image: influxdb:2.9.1
     container_name: influxdb
     #user: 1000:1000
     networks:
@@ -24,36 +24,6 @@ services:
       - traefik.http.routers.influxdb.entrypoints=websecure
       - traefik.http.routers.influxdb.tls.certresolver=cloudflare
       - docksmith.version-pin-patch=true
-  fitbit-fetch-data:
-    restart: unless-stopped
-    image: thisisarpanghosh/fitbit-fetch-data:v2.0.0
-    user: 1000:1000
-    networks:
-      - public
-    depends_on:
-      - influxdb
-    container_name: fitbit-fetch-data
-    volumes:
-      - ${BASE_DOCKER_VOLUME_PATH}/monitoring/fitbit/logs:/app/logs # logs folder should exist and owned by user id 1000
-      - ${BASE_DOCKER_VOLUME_PATH}/monitoring/fitbit/tokens:/app/tokens # tokens folder should exist and owned by user id 1000
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-    environment:
-      - FITBIT_LOG_FILE_PATH=/app/logs/fitbit.log
-      - TOKEN_FILE_PATH=/app/tokens/fitbit.token
-      - OVERWRITE_LOG_FILE=True
-      - INFLUXDB_VERSION=2 # supported values are 1 and 2
-      # Variables for influxdb 2.x ( you need to change the influxdb container config below accordingly )
-      - INFLUXDB_BUCKET=${FFD_INFLUXDB_BUCKET} # for influxdb 2.x
-      - INFLUXDB_ORG=${FFD_INFLUXDB_ORG} # for influxdb 2.x
-      - INFLUXDB_TOKEN=${FFD_INFLUXDB_TOKEN} # for influxdb 2.x
-      - INFLUXDB_URL=http://influxdb:8086 # for influxdb 2.x
-      - CLIENT_ID=${FFD_CLIENT_ID} # Change this to your client ID
-      - CLIENT_SECRET=${FFD_CLIENT_SECRET} # Change this to your client Secret
-      - DEVICENAME=Sense2 # Change this to your device name - e.g. "Charge5"
-      - LOCAL_TIMEZONE=Automatic # set to "Automatic" for Automatic setup from User profile (if not mentioned here specifically).
-    labels:
-      - traefik.enable=false
   grafana:
     container_name: grafana
     image: grafana/grafana:13.3.0
