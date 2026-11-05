@@ -53,6 +53,8 @@ services:
       options:
         max-size: 10m
     restart: unless-stopped
+    labels:
+      - docksmith.version-pin-patch=true
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
     container_name: bazarr
@@ -72,6 +74,7 @@ services:
       - traefik.http.services.bazarr.loadbalancer.server.port=6767
       - traefik.http.routers.bazarr.entrypoints=websecure
       - traefik.http.routers.bazarr.tls.certresolver=cloudflare
+      - docksmith.version-pin-patch=true
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:develop
     container_name: prowlarr
@@ -90,6 +93,7 @@ services:
       - traefik.http.services.prowlarr.loadbalancer.server.port=9696
       - traefik.http.routers.prowlarr.entrypoints=websecure
       - traefik.http.routers.prowlarr.tls.certresolver=cloudflare
+      - docksmith.version-pin-patch=true
   radarr:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
@@ -149,8 +153,9 @@ services:
       - traefik.http.services.lidarr.loadbalancer.server.port=8686
       - traefik.http.routers.lidarr.entrypoints=websecure
       - traefik.http.routers.lidarr.tls.certresolver=cloudflare
+      - docksmith.version-pin-patch=true
   flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:latest
+    image: ghcr.io/flaresolverr/flaresolverr:v3.5.2
     container_name: flaresolverr
     networks:
       - private
@@ -179,6 +184,7 @@ services:
       - TZ=America/Los_Angeles
     labels:
       - traefik.enable=false
+      - docksmith.version-pin-patch=true
   scrutiny:
     image: ghcr.io/analogj/scrutiny:v0.9.4-omnibus
     container_name: scrutiny
@@ -197,12 +203,12 @@ services:
       - /run/udev:/run/udev:ro
     devices:
       - /dev/nvme0:/dev/nvme0
-      - /dev/disk/by-id/ata-Samsung_SSD_840_Series_S14CNSAD236062B:/dev/sda    # old boot SSD
-      - /dev/disk/by-id/ata-HGST_HUH721010ALE600_2YJPRGGD:/dev/sdb             # disk3 (9.1T)
-      - /dev/disk/by-id/ata-Samsung_SSD_860_QVO_1TB_S59HNG0N402772V:/dev/sdc   # disk2 (1T)
-      - /dev/disk/by-id/ata-ST8000NM0016-1U3101_ZA201A0C:/dev/sdd              # disk1 (7.3T)
-      - /dev/disk/by-id/ata-ST12000VN0007-2GS116_ZJV3F9K8:/dev/sde             # tank drive 1
-      - /dev/disk/by-id/ata-ST12000VN0007-2GS116_ZJV15X25:/dev/sdf             # tank drive 2
+      - /dev/disk/by-id/ata-Samsung_SSD_840_Series_S14CNSAD236062B:/dev/sda # old boot SSD
+      - /dev/disk/by-id/ata-HGST_HUH721010ALE600_2YJPRGGD:/dev/sdb # disk3 (9.1T)
+      - /dev/disk/by-id/ata-Samsung_SSD_860_QVO_1TB_S59HNG0N402772V:/dev/sdc # disk2 (1T)
+      - /dev/disk/by-id/ata-ST8000NM0016-1U3101_ZA201A0C:/dev/sdd # disk1 (7.3T)
+      - /dev/disk/by-id/ata-ST12000VN0007-2GS116_ZJV3F9K8:/dev/sde # tank drive 1
+      - /dev/disk/by-id/ata-ST12000VN0007-2GS116_ZJV15X25:/dev/sdf # tank drive 2
     restart: unless-stopped
     labels:
       - traefik.enable=true
@@ -230,7 +236,7 @@ services:
       - traefik.http.routers.glances.entrypoints=websecure
       - traefik.http.routers.glances.tls.certresolver=cloudflare
   actual:
-    image: docker.io/actualbudget/actual-server:latest
+    image: docker.io/actualbudget/actual-server:26.11.0
     container_name: actual
     networks:
       - private
@@ -259,7 +265,7 @@ services:
     labels:
       - traefik.enable=false
   calibre:
-    image: lscr.io/linuxserver/calibre:latest
+    image: lscr.io/linuxserver/calibre:v9.17.0-ls430
     container_name: calibre
     security_opt:
       - seccomp:unconfined #optional
@@ -319,8 +325,9 @@ services:
       - traefik.http.routers.dashy.entrypoints=websecure
       - traefik.http.routers.dashy.tls.certresolver=cloudflare
       - traefik.docker.network=private
+      - docksmith.version-pin-patch=true
   cleanuparr:
-    image: ghcr.io/cleanuparr/cleanuparr:latest
+    image: ghcr.io/cleanuparr/cleanuparr:2.10.12
     container_name: cleanuparr
     restart: unless-stopped
     networks:
@@ -387,6 +394,8 @@ services:
       - ${BASE_DOCKER_VOLUME_PATH}/piper:/config
     ports:
       - "10200:10200"
+    labels:
+      - docksmith.version-pin-patch=true
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
@@ -406,6 +415,8 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+    labels:
+      - docksmith.version-pin-patch=true
   ollama-warmup:
     image: curlimages/curl:latest
     container_name: ollama-warmup
@@ -424,8 +435,11 @@ services:
             -d '{"model":"qwen3:4b-instruct","prompt":"","keep_alive":-1,"options":{"num_ctx":8192}}' >/dev/null
           sleep 300
         done
+    labels:
+      - docksmith.version-pin-patch=true
   docksmith:
-    image: ghcr.io/chrisae9/docksmith:0.9.0
+    #image: ghcr.io/chrisae9/docksmith:0.9.0
+    image: ghcr.io/rooday/docksmith:0.10.0
     container_name: docksmith
     user: root
     environment:

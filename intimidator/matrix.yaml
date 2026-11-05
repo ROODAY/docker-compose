@@ -15,7 +15,8 @@ services:
       - ${BASE_DOCKER_VOLUME_PATH}/matrix/postgres:/var/lib/postgresql/data
     networks:
       - public
-
+    labels:
+      - docksmith.version-pin-patch=true
   synapse:
     image: matrixdotorg/synapse:latest
     container_name: matrix-synapse
@@ -43,24 +44,14 @@ services:
       - traefik.http.services.matrix.loadbalancer.server.port=8008
       - traefik.http.routers.matrix.entrypoints=websecure
       - traefik.http.routers.matrix.tls.certresolver=cloudflare
-
+      - docksmith.version-pin-patch=true
   coturn:
     image: coturn/coturn:latest
     container_name: matrix-coturn
     restart: unless-stopped
     command: >
-      -n
-      --external-ip=174.21.209.210
-      --log-file=stdout
-      --min-port=49160
-      --max-port=49200
-      --realm=${MATRIX_SERVER_NAME}
-      --fingerprint
-      --no-multicast-peers
-      --no-cli
-      --lt-cred-mech
-      --use-auth-secret
-      --static-auth-secret=${TURN_SHARED_SECRET}
+      -n --external-ip=174.21.209.210 --log-file=stdout --min-port=49160 --max-port=49200 --realm=${MATRIX_SERVER_NAME} --fingerprint --no-multicast-peers --no-cli --lt-cred-mech --use-auth-secret --static-auth-secret=${TURN_SHARED_SECRET}
+
     ports:
       - "3478:3478/udp"
       - "3478:3478/tcp"
@@ -68,7 +59,6 @@ services:
       - "49160-49200:49160-49200/udp"
     networks:
       - public
-
   wellknown:
     image: nginx:alpine
     container_name: matrix-wellknown
@@ -83,3 +73,4 @@ services:
       - "traefik.http.routers.wellknown.rule=Host(`matrix.intimidator.rooday.com`) && PathPrefix(`/.well-known/matrix`)"
       - "traefik.http.routers.wellknown.entrypoints=websecure"
       - "traefik.http.routers.wellknown.tls=true"
+      - docksmith.version-pin-patch=true

@@ -23,9 +23,10 @@ services:
       - traefik.http.services.influxdb.loadbalancer.server.port=8086
       - traefik.http.routers.influxdb.entrypoints=websecure
       - traefik.http.routers.influxdb.tls.certresolver=cloudflare
+      - docksmith.version-pin-patch=true
   fitbit-fetch-data:
     restart: unless-stopped
-    image: thisisarpanghosh/fitbit-fetch-data:latest
+    image: thisisarpanghosh/fitbit-fetch-data:v2.0.0
     user: 1000:1000
     networks:
       - public
@@ -55,7 +56,7 @@ services:
       - traefik.enable=false
   grafana:
     container_name: grafana
-    image: grafana/grafana:latest
+    image: grafana/grafana:13.3.0
     networks:
       - public
     user: 1000:1000
@@ -75,3 +76,4 @@ services:
       - traefik.http.services.grafana.loadbalancer.server.port=3000
       - traefik.http.routers.grafana.entrypoints=websecure
       - traefik.http.routers.grafana.tls.certresolver=cloudflare
+      - docksmith.version-pin-patch=true

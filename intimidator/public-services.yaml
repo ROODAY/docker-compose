@@ -26,6 +26,7 @@ services:
       - traefik.http.services.plex.loadbalancer.server.port=32400
       - traefik.http.routers.plex.entrypoints=websecure
       - traefik.http.routers.plex.tls.certresolver=cloudflare
+      - docksmith.version-pin-patch=true
   tautulli:
     image: lscr.io/linuxserver/tautulli:latest
     container_name: tautulli
@@ -102,6 +103,7 @@ services:
       - traefik.http.services.librespeed.loadbalancer.server.port=80
       - traefik.http.routers.librespeed.entrypoints=websecure
       - traefik.http.routers.librespeed.tls.certresolver=cloudflare
+      - docksmith.version-pin-patch=true
   troddit:
     image: bsyed/troddit
     container_name: troddit
@@ -131,6 +133,8 @@ services:
       - ${BASE_DOCKER_VOLUME_PATH}/tandoor/postgres:/var/lib/postgresql/data
     env_file:
       - tandoor.env
+    labels:
+      - docksmith.version-pin-patch=true
   tandoor:
     restart: unless-stopped
     image: vabene1111/recipes
@@ -148,6 +152,7 @@ services:
       - traefik.http.services.tandoor.loadbalancer.server.port=80
       - traefik.http.routers.tandoor.entrypoints=websecure
       - traefik.http.routers.tandoor.tls.certresolver=cloudflare
+      - docksmith.version-pin-patch=true
     depends_on:
       - tandoor_db
   ghost:
@@ -214,7 +219,7 @@ services:
       - traefik.http.routers.calibre-web.entrypoints=websecure
       - traefik.http.routers.calibre-web.tls.certresolver=cloudflare
   uptime-kuma:
-    image: louislam/uptime-kuma
+    image: louislam/uptime-kuma:1
     container_name: uptime-kuma
     networks:
       - public
