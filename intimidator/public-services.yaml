@@ -196,7 +196,7 @@ services:
     volumes:
       - ${BASE_DOCKER_VOLUME_PATH}/ghostdb:/var/lib/mysql
   calibre-web:
-    image: lscr.io/linuxserver/calibre-web:0.6.27-ls408
+    image: lscr.io/linuxserver/calibre-web:v5.7.2-ls1
     container_name: calibre-web
     networks:
       - public

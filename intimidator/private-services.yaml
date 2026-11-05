@@ -380,7 +380,7 @@ services:
               count: 1
               capabilities: [gpu]
   piper:
-    image: lscr.io/linuxserver/piper:latest
+    image: lscr.io/linuxserver/piper:2.5.2-ls136
     container_name: wyoming-piper
     restart: unless-stopped
     networks:
@@ -397,7 +397,7 @@ services:
     labels:
       - docksmith.version-pin-patch=true
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama:0.40.14
     container_name: ollama
     restart: unless-stopped
     environment:
