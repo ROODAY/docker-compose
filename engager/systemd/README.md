@@ -28,6 +28,21 @@ git-as-source-of-truth. Dirt elsewhere in the repo (for example `intimidator/`)
 does not block an engager deploy. For a deliberate manual run, set
 `ALLOW_DIRTY=1`; the timer never sets it.
 
+## When it runs
+
+Daily at **04:30 host time**, plus up to 30 minutes of jitter, with
+`Persistent=true` so a missed run catches up after downtime. Check the next
+fire with `systemctl list-timers engager-update.timer`.
+
+Engager's host clock is currently EST, so 04:30 is 01:30 on the US west coast —
+the usual low-use window for a media stack (after evening streams, before
+morning use). To change it, edit `OnCalendar=` in `engager-update.timer` and
+re-run `sudo bash ./engager/systemd/install.sh`.
+
+A 6-hourly schedule
+(`OnCalendar=*-*-* 00,06,12,18:30:00`) is reasonable if you want new versions
+to land sooner; hourly is usually overkill for a media stack.
+
 ## Requirements
 
 - root (the service runs as root)
@@ -63,6 +78,13 @@ number can go stale. The daily service also runs `install.sh --if-changed`
 itself, so a newer unit version in the repo is applied automatically.
 
 ## Run it now
+
+```bash
+bash ./engager/update-now.sh
+```
+
+This starts `engager-update.service`, waits for the oneshot to finish, and
+prints the last 20 journal lines. The manual equivalent:
 
 ```bash
 sudo systemctl start engager-update.service
