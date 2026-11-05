@@ -26,7 +26,6 @@ services:
       - traefik.http.services.plex.loadbalancer.server.port=32400
       - traefik.http.routers.plex.entrypoints=websecure
       - traefik.http.routers.plex.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true
   kometa:
     image: kometateam/kometa:v2.5.3
     container_name: kometa
@@ -39,7 +38,6 @@ services:
     restart: unless-stopped
     labels:
       - traefik.enable=false
-      - docksmith.version-pin-patch=true
   tautulli:
     image: lscr.io/linuxserver/tautulli:v2.18.2-ls250
     container_name: tautulli
@@ -62,7 +60,6 @@ services:
       - traefik.http.services.tautulli.loadbalancer.server.port=8181
       - traefik.http.routers.tautulli.entrypoints=websecure
       - traefik.http.routers.tautulli.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true
   librespeed:
     image: lscr.io/linuxserver/librespeed:v6.3.1-ls299
     container_name: librespeed
@@ -84,7 +81,6 @@ services:
       - traefik.http.services.librespeed.loadbalancer.server.port=80
       - traefik.http.routers.librespeed.entrypoints=websecure
       - traefik.http.routers.librespeed.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true
   corsproxy:
     image: imjacobclark/cors-container:latest
     container_name: corsproxy
@@ -94,9 +90,7 @@ services:
       - 3333:3000
     restart: unless-stopped
     labels:
-      # This image only publishes a `latest` tag on Docker Hub, so there is no
-      # version to pin to.
-      - docksmith.allow-latest=true
+      # This image only publishes a `latest` tag; Renovate pins it by digest.
       - traefik.enable=true
       - traefik.http.routers.corsproxy.rule=Host(`corsproxy.engager.rooday.com`)
       - traefik.http.services.corsproxy.loadbalancer.server.port=3000
@@ -116,4 +110,3 @@ services:
     restart: unless-stopped
     labels:
       - traefik.enable=false
-      - docksmith.version-pin-patch=true

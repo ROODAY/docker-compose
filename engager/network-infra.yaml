@@ -27,12 +27,12 @@ services:
     restart: unless-stopped
     labels:
       - traefik.enable=false
-      - docksmith.version-pin-patch=true
   traefik-ts:
     image: traefik:3.7.16
     container_name: traefik-ts
     restart: unless-stopped
     network_mode: service:tailscale
+    # Shares tailscale's network namespace, so it must be recreated with it.
     depends_on:
       tailscale:
         condition: service_started
@@ -85,10 +85,6 @@ services:
       - traefik.http.services.proxmox.loadbalancer.server.url=${PROXBOX_BACKEND_URL}
       - traefik.http.services.proxmox.loadbalancer.serversTransport=insecure@file
       - traefik.http.services.proxmox.loadbalancer.passhostheader=true
-      # traefik-ts shares tailscale's network namespace, so it must restart
-      # whenever docksmith recreates tailscale.
-      - docksmith.restart-after=tailscale
-      - docksmith.version-pin-patch=true
   traefik:
     image: traefik:3.7.16
     container_name: traefik
@@ -133,7 +129,6 @@ services:
       - traefik.http.routers.traefik.tls.certresolver=cloudflare
       - traefik.http.routers.traefik.middlewares=myauth
       - traefik.http.middlewares.myauth.basicauth.users=${TRAEFIK_BASIC_AUTH}
-      - docksmith.version-pin-patch=true
   cloudflare-ddns:
     image: timothyjmiller/cloudflare-ddns:2.3.1
     container_name: cloudflare-ddns
@@ -148,4 +143,3 @@ services:
     restart: unless-stopped
     labels:
       - traefik.enable=false
-      - docksmith.version-pin-patch=true

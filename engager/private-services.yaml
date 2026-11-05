@@ -36,13 +36,15 @@ services:
       - traefik.http.services.qbittorrent.loadbalancer.server.port=9091
       - traefik.http.routers.qbittorrent.entrypoints=websecure
       - traefik.http.routers.qbittorrent.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:5.3.0
     container_name: qbittorrent
     network_mode: "service:gluetun"
+    # Shares gluetun's network namespace, so it must be recreated with it.
     depends_on:
-      - gluetun
+      gluetun:
+        condition: service_started
+        restart: true
     volumes:
       - /mnt/storage/torrents:/data/torrents
       - ./data/qbittorrent:/config
@@ -57,11 +59,6 @@ services:
       options:
         max-size: 10m
     restart: unless-stopped
-    labels:
-      # qbittorrent shares gluetun's network namespace, so it must restart
-      # whenever docksmith recreates gluetun.
-      - docksmith.restart-after=gluetun
-      - docksmith.version-pin-patch=true
   bazarr:
     image: lscr.io/linuxserver/bazarr:v1.6.2-ls371
     container_name: bazarr
@@ -84,7 +81,6 @@ services:
       - traefik.http.routers.bazarr.entrypoints=websecure
       - traefik.http.routers.bazarr.tls.certresolver=cloudflare
       - traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto = https
-      - docksmith.version-pin-patch=true
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:2.7.0.5723-ls167
     container_name: prowlarr
@@ -107,7 +103,6 @@ services:
       - traefik.http.services.prowlarr.loadbalancer.server.port=9696
       - traefik.http.routers.prowlarr.entrypoints=websecure
       - traefik.http.routers.prowlarr.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true
   radarr:
     image: lscr.io/linuxserver/radarr:6.4.4.10685-ls325
     container_name: radarr
@@ -131,7 +126,6 @@ services:
       - traefik.http.services.radarr.loadbalancer.server.port=7878
       - traefik.http.routers.radarr.entrypoints=websecure
       - traefik.http.routers.radarr.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true
   sonarr:
     image: lscr.io/linuxserver/sonarr:4.0.20.3014-ls329
     container_name: sonarr
@@ -156,7 +150,6 @@ services:
       - traefik.http.services.sonarr.loadbalancer.server.port=8989
       - traefik.http.routers.sonarr.entrypoints=websecure
       - traefik.http.routers.sonarr.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:v3.5.2
     container_name: flaresolverr
@@ -176,7 +169,6 @@ services:
       - traefik.http.services.flaresolverr.loadbalancer.server.port=8191
       - traefik.http.routers.flaresolverr.entrypoints=websecure
       - traefik.http.routers.flaresolverr.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true
   recyclarr:
     image: ghcr.io/recyclarr/recyclarr:8.8.1
     container_name: recyclarr
@@ -190,33 +182,6 @@ services:
       - TZ=America/New_York
     labels:
       - traefik.enable=false
-      - docksmith.version-pin-patch=true
-  docksmith:
-    #image: ghcr.io/chrisae9/docksmith:0.9.0
-    image: ghcr.io/rooday/docksmith:0.10.0
-    container_name: docksmith
-    user: root
-    environment:
-      - TZ=America/New_York
-    networks:
-      - public
-      - private
-    restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./data/docksmith:/data
-      - /home/rooday/docker-compose:/home/rooday/docker-compose:rw
-      # Registry credentials for private images; docksmith runs as root so it
-      # reads /root/.docker/config.json (see GET /api/docker-config).
-      - /home/rooday/.docker/config.json:/root/.docker/config.json:ro
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=private
-      - traefik.http.routers.docksmith.rule=Host(`docksmith.engager.ts.rooday.com`)
-      - traefik.http.services.docksmith.loadbalancer.server.port=8080
-      - traefik.http.routers.docksmith.entrypoints=websecure
-      - traefik.http.routers.docksmith.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true
   cleanuparr:
     image: ghcr.io/cleanuparr/cleanuparr:2.10.12
     container_name: cleanuparr
@@ -245,4 +210,3 @@ services:
       - traefik.http.services.cleanuparr.loadbalancer.server.port=11011
       - traefik.http.routers.cleanuparr.entrypoints=websecure
       - traefik.http.routers.cleanuparr.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true

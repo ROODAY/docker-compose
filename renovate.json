@@ -1,0 +1,48 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "timezone": "America/New_York",
+  "schedule": ["before 6am on monday"],
+  "dependencyDashboard": true,
+  "docker-compose": {
+    "managerFilePatterns": ["/^engager\\/.*\\.ya?ml$/"]
+  },
+  "packageRules": [
+    {
+      "description": "Docker tags usually have no release timestamp; do not park updates as pending.",
+      "matchDatasources": ["docker"],
+      "minimumReleaseAgeBehaviour": "timestamp-optional"
+    },
+    {
+      "description": "LinuxServer tags: upstream version (3 or 4 parts), optional commit, then -lsNNN rebuild number.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["lscr.io/linuxserver/**"],
+      "matchCurrentValue": "/-ls\\d+$/",
+      "versioning": "regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:\\.(?<build>\\d+))?(?:[-_][a-zA-Z0-9.]+)*-ls(?<revision>\\d+)$"
+    },
+    {
+      "description": "qbittorrent publishes a bare upstream version; ignore _v/-ls variants.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["lscr.io/linuxserver/qbittorrent"],
+      "versioning": "regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
+    },
+    {
+      "description": "corsproxy only publishes :latest; pin its digest so updates still go through git.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["imjacobclark/cors-container"],
+      "pinDigests": true
+    },
+    {
+      "description": "traefik and traefik-ts run the same image; move them in one PR.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["traefik"],
+      "groupName": "traefik"
+    },
+    {
+      "description": "Ingress must never auto-merge.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["traefik", "tailscale/tailscale"],
+      "automerge": false
+    }
+  ]
+}
