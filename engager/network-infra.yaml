@@ -33,6 +33,10 @@ services:
     container_name: traefik-ts
     restart: unless-stopped
     network_mode: service:tailscale
+    depends_on:
+      tailscale:
+        condition: service_started
+        restart: true
     volumes:
       - ./data/traefik-tailscale/letsencrypt:/letsencrypt
       - ./data/traefik-tailscale/dynamic.yml:/dynamic.yml:ro
