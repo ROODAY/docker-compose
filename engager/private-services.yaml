@@ -211,6 +211,7 @@ services:
       - /home/rooday/.docker/config.json:/root/.docker/config.json:ro
     labels:
       - traefik.enable=true
+      - traefik.docker.network=private
       - traefik.http.routers.docksmith.rule=Host(`docksmith.engager.ts.rooday.com`)
       - traefik.http.services.docksmith.loadbalancer.server.port=8080
       - traefik.http.routers.docksmith.entrypoints=websecure
