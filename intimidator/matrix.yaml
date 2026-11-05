@@ -18,7 +18,7 @@ services:
     labels:
       - docksmith.version-pin-patch=true
   synapse:
-    image: matrixdotorg/synapse:latest
+    image: matrixdotorg/synapse:v1.164.2
     container_name: matrix-synapse
     depends_on:
       - postgres
@@ -59,6 +59,8 @@ services:
       - "49160-49200:49160-49200/udp"
     networks:
       - public
+    labels:
+      - docksmith.version-pin-major=true
   wellknown:
     image: nginx:1.31.8
     container_name: matrix-wellknown

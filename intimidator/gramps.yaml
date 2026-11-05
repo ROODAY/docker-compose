@@ -1,6 +1,6 @@
 services:
   grampsweb: &grampsweb
-    image: ghcr.io/gramps-project/grampsweb:latest
+    image: ghcr.io/gramps-project/grampsweb:26.11.0
     container_name: grampsweb
     restart: unless-stopped
     networks:
@@ -27,6 +27,7 @@ services:
       - traefik.http.services.gramps.loadbalancer.server.port=5000
       - traefik.http.routers.gramps.entrypoints=websecure
       - traefik.http.routers.gramps.tls.certresolver=cloudflare
+      - docksmith.version-pin-major=true
 
   grampsweb_celery:
     <<: *grampsweb # YAML merge key copying the entire grampsweb service config
@@ -38,12 +39,14 @@ services:
     command: celery -A gramps_webapi.celery worker --loglevel=INFO --concurrency=2
     labels:
       - traefik.enable=false
+      - docksmith.version-pin-major=true
 
   grampsweb_redis:
-    image: docker.io/library/redis:7.2.4-alpine
+    image: docker.io/library/redis:8.10.3-alpine
     container_name: grampsweb_redis
     networks:
       - private
     restart: unless-stopped
     labels:
       - traefik.enable=false
+      - docksmith.version-pin-major=true
