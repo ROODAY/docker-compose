@@ -82,7 +82,7 @@ services:
       - traefik.http.routers.librespeed.entrypoints=websecure
       - traefik.http.routers.librespeed.tls.certresolver=cloudflare
   corsproxy:
-    image: imjacobclark/cors-container:latest
+    image: imjacobclark/cors-container:latest@sha256:0fa1b36a5153f8cd05280221e7321fc37edfba97c808f35575f73ec094e12dd4
     container_name: corsproxy
     networks:
       - public
