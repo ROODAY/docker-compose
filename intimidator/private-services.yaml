@@ -264,7 +264,7 @@ services:
     labels:
       - traefik.enable=false
   calibre:
-    image: lscr.io/linuxserver/calibre:v9.17.0-ls430
+    image: lscr.io/linuxserver/calibre:v9.18.0-ls431
     container_name: calibre
     security_opt:
       - seccomp:unconfined #optional
