@@ -187,9 +187,8 @@ services:
       - traefik.http.routers.ghost.tls.certresolver=cloudflare
       - docksmith.version-pin-major=true
   ghostdb:
-    # MySQL 8.0 is EOL (Apr 2026); 8.0 -> 8.4 LTS is a supported in-place hop,
-    # but do it as a deliberate, backed-up migration. Never jump to 9.x/26.x.
-    image: mysql:8.0.46-oraclelinux9
+    # MySQL 8.4 LTS (8.0 is EOL). The next supported hop is 9.7 LTS, not 26.x.
+    image: mysql:8.4.13-oraclelinux9
     container_name: ghostdb
     networks:
       - public
@@ -201,7 +200,8 @@ services:
     labels:
       - docksmith.version-pin-minor=true
   calibre-web:
-    image: lscr.io/linuxserver/calibre-web:v5.7.2-ls1
+    # was v5.7.2-ls1 (a December 2020 build)
+    image: lscr.io/linuxserver/calibre-web:0.6.27-ls408
     container_name: calibre-web
     networks:
       - public
