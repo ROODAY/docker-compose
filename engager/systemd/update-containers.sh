@@ -36,6 +36,11 @@ if [[ -z "$status_out" ]]; then
   PREV="$(as_owner git -C "$REPO_DIR" rev-parse --short HEAD)"
   if as_owner git -C "$REPO_DIR" fetch --quiet "$GIT_URL" "$BRANCH"; then
     if as_owner git -C "$REPO_DIR" merge --ff-only --quiet FETCH_HEAD; then
+      # The fetch above only writes FETCH_HEAD, so advance the remote-tracking
+      # ref too; otherwise the checkout looks ahead of origin after a deploy.
+      if as_owner git -C "$REPO_DIR" remote get-url origin >/dev/null 2>&1; then
+        as_owner git -C "$REPO_DIR" update-ref "refs/remotes/origin/$BRANCH" FETCH_HEAD
+      fi
       log "git: $PREV -> $(as_owner git -C "$REPO_DIR" rev-parse --short HEAD)"
     else
       die "checkout has diverged from $BRANCH; refusing to deploy non-main state"
