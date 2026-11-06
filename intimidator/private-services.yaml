@@ -37,8 +37,11 @@ services:
     image: lscr.io/linuxserver/qbittorrent:5.3.0
     container_name: qbittorrent
     network_mode: "service:gluetun"
+    # Shares gluetun's network namespace, so it must be recreated with it.
     depends_on:
-      - gluetun
+      gluetun:
+        condition: service_started
+        restart: true
     volumes:
       - /mnt/storage/torrents:/data/torrents
       - ${BASE_DOCKER_VOLUME_PATH}/qbittorrent:/config
