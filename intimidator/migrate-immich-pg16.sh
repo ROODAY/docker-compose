@@ -84,7 +84,7 @@ wait_for_db() {
 wait_for_app() {
   local i
   for i in $(seq 1 120); do
-    if curl -fsS -o /dev/null http://localhost:2283/api/server/version; then
+    if curl -fsS -o /dev/null http://localhost:2283/api/server/version 2>/dev/null; then
       return 0
     fi
     sleep 1
@@ -215,7 +215,7 @@ main() {
   wait_for_app || warn "Immich has not answered yet; check docker compose logs"
 
   ok "Migration complete: PostgreSQL $(db_version)"
-  say "  assets: $(docker exec -i "$DB_CONTAINER" sh -c 'exec psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "SELECT count(*) FROM assets;"')"
+  say "  assets: $(docker exec -i "$DB_CONTAINER" sh -c 'exec psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "SELECT count(*) FROM asset;"')"
   say ""
   say "Next:"
   say "  1. Open Immich and check a few photos/thumbnails."
