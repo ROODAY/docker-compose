@@ -68,7 +68,8 @@ services:
       - public
     # Immich upstream ships valkey 9 here; it is Redis-compatible and this
     # service is cache-only (no volume), so the swap needs no data migration.
-    image: docker.io/valkey/valkey:9@sha256:c123e3715db63d06d4ad6964884037aa0d5d4d703939b9929954112889708e1d
+    # 9.1.2 is the Debian/trixie variant, matching the upstream image.
+    image: docker.io/valkey/valkey:9.1.2
     healthcheck:
       test: redis-cli ping || exit 1
     restart: unless-stopped

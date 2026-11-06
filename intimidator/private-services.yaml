@@ -76,10 +76,10 @@ services:
       - traefik.http.routers.bazarr.tls.certresolver=cloudflare
       - docksmith.version-pin-patch=true
   prowlarr:
-    # develop is 3.0.x (running 3.0.0.5737); stable is still 2.7.0, so moving
-    # to stable would be a downgrade. Pin this exact develop build instead and
-    # switch to the stable tag once 3.x is released.
-    image: lscr.io/linuxserver/prowlarr:develop@sha256:e2382127fec5c61ca6b6eb528fd4dcf8a8255ef2957ca334d782dbaf46d4c0c7
+    # develop is 3.0.x (this build is 3.0.0.5737); stable is still 2.7.0, so
+    # moving to stable would be a downgrade. This version tag pins the exact
+    # develop build; switch to the stable tag once 3.x is released.
+    image: lscr.io/linuxserver/prowlarr:develop-3.0.0.5737-ls280
     container_name: prowlarr
     networks:
       - private
