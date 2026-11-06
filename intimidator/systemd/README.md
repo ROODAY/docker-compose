@@ -90,12 +90,13 @@ journalctl -u intimidator-update -f
 ## Rollout order
 
 1. Merge `renovate.json` and let Renovate open the first intimidator PRs.
-2. Remove the `docksmith` service and its labels from the intimidator compose
-   files. Until that commit is on `main`, docksmith keeps running alongside the
-   timer and its container is left alone. After it lands, the next deploy's
-   `docker compose up -d --remove-orphans` deletes the container.
-3. `sudo bash ./intimidator/systemd/install.sh`
-4. `sudo systemctl start intimidator-update.service` and watch the journal.
+2. `sudo bash ./intimidator/systemd/install.sh`
+3. `sudo systemctl start intimidator-update.service` and watch the journal.
+
+docksmith has been removed from the intimidator compose files. On the deploy
+that carries that commit, `docker compose up -d --remove-orphans` deletes the
+still-running container. Its state in `${BASE_DOCKER_VOLUME_PATH}/docksmith`
+can be deleted once you are happy.
 
 ## Rollback
 

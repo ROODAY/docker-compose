@@ -38,7 +38,6 @@ services:
       - traefik.http.services.immich.loadbalancer.server.port=2283
       - traefik.http.routers.immich.entrypoints=websecure
       - traefik.http.routers.immich.tls.certresolver=cloudflare
-      - docksmith.version-pin-major=true
 
   immich-machine-learning:
     container_name: immich_machine_learning
@@ -60,7 +59,6 @@ services:
       disable: false
     labels:
       - traefik.enable=false
-      - docksmith.version-pin-major=true
 
   redis:
     container_name: immich_redis
@@ -75,7 +73,6 @@ services:
     restart: unless-stopped
     labels:
       - traefik.enable=false
-      - docksmith.version-pin-major=true
 
   database:
     container_name: immich_postgres
@@ -98,4 +95,3 @@ services:
     restart: unless-stopped
     labels:
       - traefik.enable=false
-      - docksmith.version-pin-major=true

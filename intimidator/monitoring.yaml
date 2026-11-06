@@ -23,7 +23,6 @@ services:
       - traefik.http.services.influxdb.loadbalancer.server.port=8086
       - traefik.http.routers.influxdb.entrypoints=websecure
       - traefik.http.routers.influxdb.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true
   grafana:
     container_name: grafana
     image: grafana/grafana:13.3.0
@@ -46,4 +45,3 @@ services:
       - traefik.http.services.grafana.loadbalancer.server.port=3000
       - traefik.http.routers.grafana.entrypoints=websecure
       - traefik.http.routers.grafana.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true

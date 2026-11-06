@@ -53,8 +53,6 @@ services:
       options:
         max-size: 10m
     restart: unless-stopped
-    labels:
-      - docksmith.version-pin-patch=true
   bazarr:
     image: lscr.io/linuxserver/bazarr:v1.6.2-ls371
     container_name: bazarr
@@ -74,7 +72,6 @@ services:
       - traefik.http.services.bazarr.loadbalancer.server.port=6767
       - traefik.http.routers.bazarr.entrypoints=websecure
       - traefik.http.routers.bazarr.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true
   prowlarr:
     # Stable channel, same tag as engager. 3.0.x is still a develop pre-release;
     # move both hosts together once LinuxServer publishes a stable 3.x tag.
@@ -95,7 +92,6 @@ services:
       - traefik.http.services.prowlarr.loadbalancer.server.port=9696
       - traefik.http.routers.prowlarr.entrypoints=websecure
       - traefik.http.routers.prowlarr.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true
   radarr:
     image: lscr.io/linuxserver/radarr:6.4.4.10685-ls325
     container_name: radarr
@@ -155,7 +151,6 @@ services:
       - traefik.http.services.lidarr.loadbalancer.server.port=8686
       - traefik.http.routers.lidarr.entrypoints=websecure
       - traefik.http.routers.lidarr.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:v3.5.2
     container_name: flaresolverr
@@ -186,7 +181,6 @@ services:
       - TZ=America/Los_Angeles
     labels:
       - traefik.enable=false
-      - docksmith.version-pin-patch=true
   scrutiny:
     image: ghcr.io/analogj/scrutiny:v0.10.0-omnibus
     container_name: scrutiny
@@ -327,7 +321,6 @@ services:
       - traefik.http.routers.dashy.entrypoints=websecure
       - traefik.http.routers.dashy.tls.certresolver=cloudflare
       - traefik.docker.network=private
-      - docksmith.version-pin-patch=true
   cleanuparr:
     image: ghcr.io/cleanuparr/cleanuparr:2.10.12
     container_name: cleanuparr
@@ -396,8 +389,6 @@ services:
       - ${BASE_DOCKER_VOLUME_PATH}/piper:/config
     ports:
       - "10200:10200"
-    labels:
-      - docksmith.version-pin-patch=true
   ollama:
     image: ollama/ollama:0.40.14
     container_name: ollama
@@ -417,8 +408,6 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    labels:
-      - docksmith.version-pin-patch=true
   ollama-warmup:
     image: curlimages/curl:8.23.0
     container_name: ollama-warmup
@@ -437,31 +426,3 @@ services:
             -d '{"model":"qwen3:4b-instruct","prompt":"","keep_alive":-1,"options":{"num_ctx":8192}}' >/dev/null
           sleep 300
         done
-    labels:
-      - docksmith.version-pin-patch=true
-  docksmith:
-    #image: ghcr.io/chrisae9/docksmith:0.9.0
-    image: ghcr.io/rooday/docksmith:0.11.0
-    container_name: docksmith
-    user: root
-    environment:
-      - TZ=America/Los_Angeles
-    networks:
-      - public
-      - private
-    restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ${BASE_DOCKER_VOLUME_PATH}/docksmith:/data
-      - /home/rooday/docker-compose:/home/rooday/docker-compose:rw
-      # Registry credentials for private images; docksmith runs as root so it
-      # reads /root/.docker/config.json (see GET /api/docker-config).
-      - /home/rooday/.docker/config.json:/root/.docker/config.json:ro
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=private
-      - traefik.http.routers.docksmith.rule=Host(`docksmith.intimidator.ts.rooday.com`)
-      - traefik.http.services.docksmith.loadbalancer.server.port=8080
-      - traefik.http.routers.docksmith.entrypoints=websecure
-      - traefik.http.routers.docksmith.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true

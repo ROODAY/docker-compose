@@ -27,7 +27,6 @@ services:
     restart: unless-stopped
     labels:
       - traefik.enable=false
-      - docksmith.version-pin-patch=true
   traefik-ts:
     image: traefik:3.7.17
     container_name: traefik-ts
@@ -91,7 +90,6 @@ services:
       - traefik.http.middlewares.ha-headers.headers.customrequestheaders.X-Forwarded-Host=ha.intimidator.ts.rooday.com
       - traefik.http.middlewares.ha-headers.headers.customrequestheaders.X-Forwarded-Port=443
       - traefik.http.routers.homeassistant.middlewares=ha-headers
-      - docksmith.version-pin-patch=true
   traefik:
     image: traefik:3.7.17
     container_name: traefik

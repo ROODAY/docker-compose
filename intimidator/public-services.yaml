@@ -26,7 +26,6 @@ services:
       - traefik.http.services.plex.loadbalancer.server.port=32400
       - traefik.http.routers.plex.entrypoints=websecure
       - traefik.http.routers.plex.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true
   tautulli:
     image: lscr.io/linuxserver/tautulli:v2.18.2-ls250
     container_name: tautulli
@@ -103,7 +102,6 @@ services:
       - traefik.http.services.librespeed.loadbalancer.server.port=80
       - traefik.http.routers.librespeed.entrypoints=websecure
       - traefik.http.routers.librespeed.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true
   troddit:
     image: bsyed/troddit@sha256:696350e536fabf1f28ac5baeffee4ca8c33fae9b91907a4ceb51552e51c27fea
     container_name: troddit
@@ -133,8 +131,6 @@ services:
       - ${BASE_DOCKER_VOLUME_PATH}/tandoor/postgres:/var/lib/postgresql/data
     env_file:
       - tandoor.env
-    labels:
-      - docksmith.version-pin-patch=true
   tandoor:
     restart: unless-stopped
     image: vabene1111/recipes:2.7.2
@@ -152,7 +148,6 @@ services:
       - traefik.http.services.tandoor.loadbalancer.server.port=80
       - traefik.http.routers.tandoor.entrypoints=websecure
       - traefik.http.routers.tandoor.tls.certresolver=cloudflare
-      - docksmith.version-pin-patch=true
     depends_on:
       - tandoor_db
   ghost:
@@ -185,7 +180,6 @@ services:
       - traefik.http.services.ghost.loadbalancer.server.port=2368
       - traefik.http.routers.ghost.entrypoints=websecure
       - traefik.http.routers.ghost.tls.certresolver=cloudflare
-      - docksmith.version-pin-major=true
   ghostdb:
     # MySQL 8.4 LTS (8.0 is EOL). The next supported hop is 9.7 LTS, not 26.x.
     image: mysql:8.4.13-oraclelinux9
@@ -197,8 +191,6 @@ services:
       MYSQL_ROOT_PASSWORD: ${GHOST_DB_PASSWORD}
     volumes:
       - ${BASE_DOCKER_VOLUME_PATH}/ghostdb:/var/lib/mysql
-    labels:
-      - docksmith.version-pin-minor=true
   calibre-web:
     # was v5.7.2-ls1 (a December 2020 build)
     image: lscr.io/linuxserver/calibre-web:0.6.27-ls408
