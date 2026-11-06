@@ -98,7 +98,7 @@ services:
       - public
     volumes:
       - ${BASE_DOCKER_VOLUME_PATH}/traefik/letsencrypt:/letsencrypt
-      - ${BASE_DOCKER_VOLUME_PATH}/traefik/dynamic.yml:/dynamic.yml:ro
+      - ${BASE_DOCKER_VOLUME_PATH}/traefik/dynamic:/dynamic:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       # - /run/user/1000/docker.sock:/var/run/docker.sock:ro
       - /etc/timezone:/etc/timezone:ro
@@ -114,7 +114,8 @@ services:
       - --accesslog=true
       - --api
       - --providers.docker=true
-      - --providers.file.filename=/dynamic.yml
+      - --providers.file.directory=/dynamic
+      - --providers.file.watch=true
       - --entrypoints.web.address=:80
       - --entrypoints.web.http.redirections.entryPoint.to=websecure
       - --entrypoints.web.http.redirections.entryPoint.scheme=https
