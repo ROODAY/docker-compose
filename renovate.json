@@ -28,6 +28,18 @@
       "versioning": "regex:^gpu-legacy-v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-ls(?<revision>\\d+)$"
     },
     {
+      "description": "calibre-web has a legacy v5.x-ls1 tag line from 2020 that would otherwise look like a major upgrade; only the bare 0.x-lsNNN line is current.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["lscr.io/linuxserver/calibre-web"],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-ls(?<revision>\\d+)$"
+    },
+    {
+      "description": "immich-machine-learning ships the same release as the server with a -cuda suffix.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/immich-app/immich-machine-learning"],
+      "versioning": "regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-cuda$"
+    },
+    {
       "description": "qbittorrent publishes a bare upstream version; a single-digit major excludes legacy 20.04.x tags.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["lscr.io/linuxserver/qbittorrent"],

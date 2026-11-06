@@ -13,7 +13,7 @@ services:
     user: 1000:1000
     env_file:
       - .env
-    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-v3.3.6}
+    image: ghcr.io/immich-app/immich-server:v3.3.6
     networks:
       - public
     extends:
@@ -48,7 +48,7 @@ services:
       - public
     # For hardware acceleration, add one of -[armnn, cuda, openvino] to the image tag.
     # Example tag: ${IMMICH_VERSION:-v3.3.6}-cuda
-    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-v3.3.6}-cuda
+    image: ghcr.io/immich-app/immich-machine-learning:v3.3.6-cuda
     extends: # uncomment this section for hardware acceleration - see https://immich.app/docs/features/ml-hardware-acceleration
       file: immich.hwaccel.ml.yml
       service: cuda # set to one of [armnn, cuda, openvino, openvino-wsl] for accelerated inference - use the `-wsl` version for WSL2 where applicable
