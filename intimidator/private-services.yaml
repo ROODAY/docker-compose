@@ -441,7 +441,7 @@ services:
       - docksmith.version-pin-patch=true
   docksmith:
     #image: ghcr.io/chrisae9/docksmith:0.9.0
-    image: ghcr.io/rooday/docksmith:0.11.0
+    image: ghcr.io/rooday/docksmith:0.11.1
     container_name: docksmith
     user: root
     environment:
