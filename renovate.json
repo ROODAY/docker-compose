@@ -6,7 +6,7 @@
   "prHourlyLimit": 0,
   "dependencyDashboard": true,
   "docker-compose": {
-    "managerFilePatterns": ["/^engager\\/.*\\.ya?ml$/"]
+    "managerFilePatterns": ["/^(?:engager|intimidator)\\/.*\\.ya?ml$/"]
   },
   "packageRules": [
     {
@@ -22,15 +22,27 @@
       "versioning": "regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:\\.(?<build>\\d+))?(?:[-_][a-zA-Z0-9.]+)*-ls(?<revision>\\d+)$"
     },
     {
+      "description": "faster-whisper publishes gpu-legacy- prefixed builds that the generic LinuxServer regex does not match.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["lscr.io/linuxserver/faster-whisper"],
+      "versioning": "regex:^gpu-legacy-v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-ls(?<revision>\\d+)$"
+    },
+    {
       "description": "qbittorrent publishes a bare upstream version; a single-digit major excludes legacy 20.04.x tags.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["lscr.io/linuxserver/qbittorrent"],
       "versioning": "regex:^v?(?<major>\\d)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
     },
     {
-      "description": "corsproxy only publishes :latest; pin its digest so updates still go through git.",
+      "description": "Gramps Web uses CalVer with mixed v-prefixed and bare tags, plus the occasional 4-part build.",
       "matchDatasources": ["docker"],
-      "matchPackageNames": ["imjacobclark/cors-container"],
+      "matchPackageNames": ["ghcr.io/gramps-project/grampsweb"],
+      "versioning": "regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:\\.(?<build>\\d+))?$"
+    },
+    {
+      "description": "Upstream publishes only :latest for these; the digest pin makes updates reviewable in git.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["imjacobclark/cors-container", "bsyed/troddit"],
       "pinDigests": true
     },
     {
@@ -44,6 +56,42 @@
       "matchDatasources": ["docker"],
       "matchPackageNames": ["traefik", "tailscale/tailscale"],
       "automerge": false
+    },
+    {
+      "description": "Immich server and machine-learning ship one release and must stay on the same version.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": [
+        "ghcr.io/immich-app/immich-server",
+        "ghcr.io/immich-app/immich-machine-learning"
+      ],
+      "groupName": "immich"
+    },
+    {
+      "description": "Immich postgres is a custom VectorChord image; PG16 changes only via a deliberate dump/restore.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/immich-app/postgres"],
+      "enabled": false
+    },
+    {
+      "description": "Postgres stays on major 16 until a deliberate migration; patch/minor PRs still land.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["postgres", "docker.io/library/postgres"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "MySQL stays on 8.4 LTS; 9.x and 26.x need a deliberate one-way data dictionary migration.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["mysql", "docker.io/library/mysql"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Immich valkey is pinned to the cache version that Immich release was tested against.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["valkey/valkey", "docker.io/valkey/valkey"],
+      "matchFileNames": ["intimidator/immich.yaml"],
+      "enabled": false
     }
   ]
 }

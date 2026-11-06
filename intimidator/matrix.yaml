@@ -1,7 +1,7 @@
 # for port mapping, left side is host, right side is container
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16.15-alpine
     container_name: matrix-postgres
     restart: unless-stopped
     environment:

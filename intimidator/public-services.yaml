@@ -65,7 +65,7 @@ services:
       - traefik.http.routers.synclounge.entrypoints=websecure
       - traefik.http.routers.synclounge.tls.certresolver=cloudflare
   requestrr:
-    image: thomst08/requestrr
+    image: thomst08/requestrr:v2.1.10
     container_name: requestrr
     networks:
       - public
@@ -105,7 +105,7 @@ services:
       - traefik.http.routers.librespeed.tls.certresolver=cloudflare
       - docksmith.version-pin-patch=true
   troddit:
-    image: bsyed/troddit
+    image: bsyed/troddit@sha256:696350e536fabf1f28ac5baeffee4ca8c33fae9b91907a4ceb51552e51c27fea
     container_name: troddit
     networks:
       - public
@@ -128,7 +128,7 @@ services:
     container_name: tandoor_db
     networks:
       - public
-    image: postgres:16-alpine
+    image: postgres:16.15-alpine
     volumes:
       - ${BASE_DOCKER_VOLUME_PATH}/tandoor/postgres:/var/lib/postgresql/data
     env_file:

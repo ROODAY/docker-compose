@@ -1,7 +1,7 @@
 # for port mapping, left side is host, right side is container
 services:
   gluetun:
-    image: qmcgaw/gluetun:latest
+    image: qmcgaw/gluetun:v3.41.3
     container_name: gluetun
     cap_add:
       - NET_ADMIN
@@ -76,10 +76,9 @@ services:
       - traefik.http.routers.bazarr.tls.certresolver=cloudflare
       - docksmith.version-pin-patch=true
   prowlarr:
-    # develop is 3.0.x (this build is 3.0.0.5737); stable is still 2.7.0, so
-    # moving to stable would be a downgrade. This version tag pins the exact
-    # develop build; switch to the stable tag once 3.x is released.
-    image: lscr.io/linuxserver/prowlarr:develop-3.0.0.5737-ls280
+    # Stable channel, same tag as engager. 3.0.x is still a develop pre-release;
+    # move both hosts together once LinuxServer publishes a stable 3.x tag.
+    image: lscr.io/linuxserver/prowlarr:2.7.0.5723-ls167
     container_name: prowlarr
     networks:
       - private
