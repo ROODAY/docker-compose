@@ -45,7 +45,7 @@ services:
       - traefik.http.routers.tautulli.entrypoints=websecure
       - traefik.http.routers.tautulli.tls.certresolver=cloudflare
   synclounge:
-    image: ghcr.io/chrisae9/synclounge:6.4.23
+    image: ghcr.io/chrisae9/synclounge:6.4.24
     container_name: synclounge
     networks:
       - public
