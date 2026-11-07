@@ -104,6 +104,25 @@ journalctl -u engager-update -f
 4. `sudo bash ./engager/systemd/install.sh`
 5. `sudo systemctl start engager-update.service` and watch the journal.
 
+## Failure email
+
+`engager-update.service` has `OnFailure=engager-update-notify.service`, which runs
+`notify-failure.sh`: it mails the failed run's log (last 80 lines), the number
+of running containers, and every container that is not running. Mail goes through
+the local postfix, which relays via Amazon SES.
+
+The addresses are host-local and never committed:
+
+```bash
+sudo tee /etc/default/compose-updater >/dev/null <<'EOF'
+NOTIFY_FROM="Engager Docker Updater <engager@mail.rooday.com>"
+NOTIFY_TO="Name <you@example.com>"
+EOF
+```
+
+Without that file the hook logs a line and sends nothing. To send a test email
+built from the last run's log: `sudo systemctl start engager-update-notify.service`.
+
 ## Rollback
 
 Revert the offending commit on `main`, then:
@@ -128,3 +147,5 @@ sudo bash ./engager/systemd/install.sh --uninstall
 | `engager/systemd/update-containers.sh` | `/usr/local/lib/engager-updater/update-containers.sh` |
 | `engager/systemd/engager-update.service` | `/etc/systemd/system/engager-update.service` |
 | `engager/systemd/engager-update.timer` | `/etc/systemd/system/engager-update.timer` |
+| `engager/systemd/notify-failure.sh` | `/usr/local/lib/engager-updater/notify-failure.sh` |
+| `engager/systemd/engager-update-notify.service` | `/etc/systemd/system/engager-update-notify.service` |

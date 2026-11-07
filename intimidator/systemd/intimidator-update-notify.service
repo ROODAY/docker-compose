@@ -1,0 +1,8 @@
+[Unit]
+Description=Email the log of a failed Intimidator deploy
+After=network-online.target postfix.service
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/local/lib/intimidator-updater/notify-failure.sh intimidator-update.service

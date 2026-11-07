@@ -98,6 +98,25 @@ that carries that commit, `docker compose up -d --remove-orphans` deletes the
 still-running container. Its state in `${BASE_DOCKER_VOLUME_PATH}/docksmith`
 can be deleted once you are happy.
 
+## Failure email
+
+`intimidator-update.service` has `OnFailure=intimidator-update-notify.service`, which runs
+`notify-failure.sh`: it mails the failed run's log (last 80 lines), the number
+of running containers, and every container that is not running. Mail goes through
+the local postfix, which relays via Amazon SES.
+
+The addresses are host-local and never committed:
+
+```bash
+sudo tee /etc/default/compose-updater >/dev/null <<'EOF'
+NOTIFY_FROM="Intimidator Docker Updater <intimidator@mail.rooday.com>"
+NOTIFY_TO="Name <you@example.com>"
+EOF
+```
+
+Without that file the hook logs a line and sends nothing. To send a test email
+built from the last run's log: `sudo systemctl start intimidator-update-notify.service`.
+
 ## Rollback
 
 Revert the offending commit on `main`, then:
@@ -122,3 +141,5 @@ sudo bash ./intimidator/systemd/install.sh --uninstall
 | `intimidator/systemd/update-containers.sh` | `/usr/local/lib/intimidator-updater/update-containers.sh` |
 | `intimidator/systemd/intimidator-update.service` | `/etc/systemd/system/intimidator-update.service` |
 | `intimidator/systemd/intimidator-update.timer` | `/etc/systemd/system/intimidator-update.timer` |
+| `intimidator/systemd/notify-failure.sh` | `/usr/local/lib/intimidator-updater/notify-failure.sh` |
+| `intimidator/systemd/intimidator-update-notify.service` | `/etc/systemd/system/intimidator-update-notify.service` |

@@ -3,6 +3,7 @@ Description=Intimidator deploy (fetch git, pull images, recreate changed contain
 Wants=network-online.target
 After=network-online.target docker.service
 Requires=docker.service
+OnFailure=intimidator-update-notify.service
 
 [Service]
 Type=oneshot

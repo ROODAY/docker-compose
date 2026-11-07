@@ -10,6 +10,8 @@ MANIFEST="$INSTALL_DIR/manifest.sha256"
 SRC_SCRIPT="$SCRIPT_DIR/update-containers.sh"
 SRC_SERVICE="$SCRIPT_DIR/intimidator-update.service"
 SRC_TIMER="$SCRIPT_DIR/intimidator-update.timer"
+SRC_NOTIFY_SCRIPT="$SCRIPT_DIR/notify-failure.sh"
+SRC_NOTIFY_SERVICE="$SCRIPT_DIR/intimidator-update-notify.service"
 
 log() { printf '%s\n' "$*"; }
 die() { echo "ERROR: $*" >&2; exit 1; }
@@ -20,18 +22,23 @@ hash_file() {
   printf '%s\n' "$hash"
 }
 
-for src_file in "$SRC_SCRIPT" "$SRC_SERVICE" "$SRC_TIMER"; do
+for src_file in "$SRC_SCRIPT" "$SRC_SERVICE" "$SRC_TIMER" \
+                "$SRC_NOTIFY_SCRIPT" "$SRC_NOTIFY_SERVICE"; do
   [[ -f "$src_file" ]] || die "missing source file: $src_file"
 done
 
 repo_manifest() {
-  local script_hash service_hash timer_hash
+  local script_hash service_hash timer_hash notify_script_hash notify_service_hash
   script_hash="$(hash_file "$SRC_SCRIPT")" || return 1
   service_hash="$(hash_file "$SRC_SERVICE")" || return 1
   timer_hash="$(hash_file "$SRC_TIMER")" || return 1
+  notify_script_hash="$(hash_file "$SRC_NOTIFY_SCRIPT")" || return 1
+  notify_service_hash="$(hash_file "$SRC_NOTIFY_SERVICE")" || return 1
   printf '%s  %s\n' "$script_hash" "$INSTALL_DIR/update-containers.sh"
   printf '%s  %s\n' "$service_hash" "$UNIT_DIR/intimidator-update.service"
   printf '%s  %s\n' "$timer_hash" "$UNIT_DIR/intimidator-update.timer"
+  printf '%s  %s\n' "$notify_script_hash" "$INSTALL_DIR/notify-failure.sh"
+  printf '%s  %s\n' "$notify_service_hash" "$UNIT_DIR/intimidator-update-notify.service"
 }
 repo_version() { repo_manifest | sha256sum | cut -c1-12; }
 installed_version() {
@@ -67,7 +74,9 @@ if [[ "$mode" == "--check" ]]; then
   drift=0
   for pair in "$SRC_SCRIPT|$INSTALL_DIR/update-containers.sh" \
               "$SRC_SERVICE|$UNIT_DIR/intimidator-update.service" \
-              "$SRC_TIMER|$UNIT_DIR/intimidator-update.timer"; do
+              "$SRC_TIMER|$UNIT_DIR/intimidator-update.timer" \
+              "$SRC_NOTIFY_SCRIPT|$INSTALL_DIR/notify-failure.sh" \
+              "$SRC_NOTIFY_SERVICE|$UNIT_DIR/intimidator-update-notify.service"; do
     src="${pair%%|*}"
     dest="${pair##*|}"
     if [[ ! -f "$dest" ]] || ! cmp -s "$src" "$dest"; then
@@ -95,7 +104,8 @@ fi
 
 if [[ "$mode" == "--uninstall" ]]; then
   systemctl disable --now "$TIMER_UNIT" 2>/dev/null || true
-  rm -f "$UNIT_DIR/intimidator-update.service" "$UNIT_DIR/intimidator-update.timer"
+  rm -f "$UNIT_DIR/intimidator-update.service" "$UNIT_DIR/intimidator-update.timer" \
+        "$UNIT_DIR/intimidator-update-notify.service"
   rm -rf "$INSTALL_DIR"
   systemctl daemon-reload 2>/dev/null || true
   log "uninstalled"
@@ -116,6 +126,8 @@ install_artifact() {
 install_artifact "$SRC_SCRIPT" "$INSTALL_DIR/update-containers.sh" 0755
 install_artifact "$SRC_SERVICE" "$UNIT_DIR/intimidator-update.service" 0644
 install_artifact "$SRC_TIMER" "$UNIT_DIR/intimidator-update.timer" 0644
+install_artifact "$SRC_NOTIFY_SCRIPT" "$INSTALL_DIR/notify-failure.sh" 0755
+install_artifact "$SRC_NOTIFY_SERVICE" "$UNIT_DIR/intimidator-update-notify.service" 0644
 
 new_manifest="$MANIFEST.tmp.$$"
 repo_manifest >"$new_manifest" \
