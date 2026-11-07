@@ -216,7 +216,7 @@ services:
       - traefik.http.routers.scrutiny.entrypoints=websecure
       - traefik.http.routers.scrutiny.tls.certresolver=cloudflare
   glances:
-    image: nicolargo/glances:4.5.8
+    image: nicolargo/glances:4.5.9
     restart: unless-stopped
     container_name: glances
     networks:
