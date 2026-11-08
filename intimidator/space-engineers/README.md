@@ -22,9 +22,15 @@ and quits. Find it with:
 Get-ChildItem C:\ProgramData, $env:APPDATA, C:\seserver -Recurse -Filter SpaceEngineers-Dedicated.cfg -ErrorAction SilentlyContinue | Select-Object FullName, LastWriteTime
 ```
 
-`Start` only reports success once the server answers a Steam query on port
-27016 (the same check Kuma makes); a server stuck at "press any key" is
-stopped and reported as a failure.
+`Start` launches the server detached and hidden (through WMI, so it never
+belongs to the window you ran it from) and only reports success once it
+answers a Steam query on port 27016, the same check Kuma makes. A server
+stuck at "press any key" is stopped and reported as a failure.
+
+`Save` and `Stop` use the server's Remote API (`RemoteApiEnabled`,
+`RemoteSecurityKey`, `RemoteApiPort` in the instance cfg; the key never
+leaves the VM). `Stop` saves the world, asks the server to shut down, and
+only force-kills it if the API does not answer.
 
 ## Install
 
@@ -62,20 +68,30 @@ Register-ScheduledTask -TaskName 'SE server update' -Action (& $run Update) `
 If you sign in to Windows with a Microsoft account, the password is that
 account's password (not the PIN).
 
+## Stop cleanly at Windows shutdown
+
+A Group Policy shutdown script runs `Stop` (save, then stop) before Windows
+ends the server, including when Proxmox shuts the VM down through the guest
+agent. In `gpedit.msc`:
+
+1. Computer Configuration > Windows Settings > Scripts (Startup/Shutdown) >
+   **Shutdown** > **Scripts** tab (not the PowerShell tab) > **Add**.
+2. Script Name: `powershell.exe`
+3. Script Parameters:
+   `-NoProfile -ExecutionPolicy Bypass -File C:\se-tools\se-server.ps1 -Action Stop -InstancePath "C:\ProgramData\SpaceEngineersDedicated\Esemania"`
+4. OK, then `gpupdate /force` in an admin PowerShell.
+
+Stop takes about 30-90 seconds, well inside Proxmox's shutdown timeout.
+
 ## Day to day
 
-- **Change config or mods:** `se-server.ps1 -Action Stop`, edit and save in
+- **Check:** `se-server.ps1 -Action Check -InstancePath <folder>` shows the
+  installed vs latest build, whether the server answers, and whether the
+  Remote API accepts the key (`remote API: ok`).
+- **Save now:** `se-server.ps1 -Action Save -InstancePath <folder>`.
+- **Change config or mods:** `se-server.ps1 -Action Stop -InstancePath <folder>`, edit and save in
   the GUI (do not start the server from the GUI), then
   `se-server.ps1 -Action Start -InstancePath <folder>`.
 - **Update now:** `se-server.ps1 -Action Update`. Add `-Validate` to have
   steamcmd verify every file, or `-Force` to reinstall and restart anyway.
 - **Log:** `C:\seserver\se-server.log` (steamcmd output included).
-
-## Shutdown
-
-There is no clean stop for a headless server: `-Action Stop` and a Windows
-shutdown both end the process, so anything since the last autosave is
-lost. Keep the autosave interval short in the GUI (for example 5 minutes).
-Windows shutdown ends it the same way, so a shutdown task would add nothing.
-The server's Remote API (listening on 8080) could do a clean save-then-stop;
-not set up yet.

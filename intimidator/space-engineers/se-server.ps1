@@ -4,12 +4,15 @@
 
 .DESCRIPTION
   Runs on the Windows VM. The server runs headless in console mode
-  (SpaceEngineersDedicated.exe -console), using the config the GUI saves.
-  See README.md for the Scheduled Tasks that call this.
+  (SpaceEngineersDedicated.exe -console -path <instance>). Save and Stop use
+  the server's Remote API (key and port from the instance's
+  SpaceEngineers-Dedicated.cfg); Stop only force-kills if that fails.
+  See README.md for the Scheduled Tasks and shutdown script that call this.
 
     se-server.ps1 -Action Check     # installed vs latest Steam build, changes nothing
-    se-server.ps1 -Action Start     # start it if it is not running
-    se-server.ps1 -Action Stop      # stop it (before using the GUI, for example)
+    se-server.ps1 -Action Start     # start it (detached, hidden) if it is not running
+    se-server.ps1 -Action Save      # save the world now, keep running
+    se-server.ps1 -Action Stop      # save, then stop (before using the GUI, at shutdown)
     se-server.ps1 -Action Update    # if a newer build exists: stop, update, start
     se-server.ps1 -Action Update -Force      # update and restart even if current
     se-server.ps1 -Action Update -Validate   # also verify every installed file
@@ -17,7 +20,7 @@
   Exit code 0 on success, 1 on failure. Log: <InstallDir>\se-server.log.
 #>
 param(
-  [Parameter(Mandatory)] [ValidateSet('Check', 'Start', 'Stop', 'Update')] [string] $Action,
+  [Parameter(Mandatory)] [ValidateSet('Check', 'Start', 'Save', 'Stop', 'Update')] [string] $Action,
   [string] $SteamCmd = 'C:\steamcmd\steamcmd.exe',
   [string] $InstallDir = 'C:\seserver',
   # Instance folder holding SpaceEngineers-Dedicated.cfg and the world. Empty
@@ -85,6 +88,55 @@ function Test-ServerQuery {
   }
 }
 
+function Get-RemoteApi {
+  # Remote API settings from the instance config; $null if unavailable.
+  if (-not $InstancePath) { return $null }
+  $cfg = Join-Path $InstancePath 'SpaceEngineers-Dedicated.cfg'
+  if (-not (Test-Path $cfg)) { return $null }
+  [xml] $x = Get-Content -Raw $cfg
+  $enabled = $x.SelectSingleNode('//RemoteApiEnabled')
+  $key = $x.SelectSingleNode('//RemoteSecurityKey')
+  $port = $x.SelectSingleNode('//RemoteApiPort')
+  if (-not $key -or -not $key.InnerText) { return $null }
+  if ($enabled -and $enabled.InnerText -ne 'true') { return $null }
+  $p = 8080
+  if ($port -and $port.InnerText) { $p = [int]$port.InnerText }
+  return @{ Key = $key.InnerText; Port = $p }
+}
+
+function Invoke-SeRemote([string] $Method, [string] $Resource) {
+  # VRage Remote API: HMAC-SHA1 over "<path>\r\n<nonce>\r\n<date>\r\n" with
+  # the base64-decoded security key, sent as "Authorization: <nonce>:<hash>".
+  $api = Get-RemoteApi
+  if (-not $api) { throw 'Remote API not configured (needs -InstancePath and RemoteSecurityKey in the cfg)' }
+  $path = "/vrageremote/$Resource"
+  $now = [DateTime]::UtcNow
+  $date = $now.ToString('r')
+  $nonce = [string](Get-Random -Minimum 100000 -Maximum 2147483647)
+  $msg = "$path`r`n$nonce`r`n$date`r`n"
+  $hmac = New-Object System.Security.Cryptography.HMACSHA1 (, [Convert]::FromBase64String($api.Key))
+  $hash = [Convert]::ToBase64String($hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($msg)))
+  # HttpWebRequest, not Invoke-RestMethod: Windows PowerShell refuses to set Date.
+  $req = [System.Net.HttpWebRequest]::Create("http://127.0.0.1:$($api.Port)$path")
+  $req.Method = $Method
+  $req.Date = $now
+  $req.Headers.Add('Authorization', "${nonce}:$hash")
+  $req.Timeout = 30000
+  if ($Method -ne 'GET') { $req.ContentLength = 0 }
+  $resp = $req.GetResponse()
+  try {
+    $body = (New-Object System.IO.StreamReader ($resp.GetResponseStream())).ReadToEnd()
+    return $body
+  } finally {
+    $resp.Close()
+  }
+}
+
+function Test-RemoteApi {
+  try { [void](Invoke-SeRemote 'GET' 'v1/server/ping'); return 'ok' }
+  catch { return "unavailable ($($_.Exception.Message))" }
+}
+
 function Start-Server {
   if (Get-ServerProcess) {
     if (Test-ServerQuery) { Log 'already running'; return }
@@ -93,34 +145,62 @@ function Start-Server {
     Stop-Server
   }
   if (-not (Test-Path $Exe)) { throw "not found: $Exe" }
-  $argList = @('-console')
-  if ($InstancePath) { $argList += @('-path', "`"$InstancePath`"") }
-  Start-Process -FilePath $Exe -ArgumentList $argList -WorkingDirectory (Split-Path $Exe) -WindowStyle Hidden
+  $cmd = "`"$Exe`" -console"
+  if ($InstancePath) { $cmd += " -path `"$InstancePath`"" }
+  # Win32_Process.Create rather than Start-Process: the server is not a child
+  # of this shell, so it never attaches to (or dies with) the caller's console.
+  $startup = New-CimInstance -Namespace root/cimv2 -ClassName Win32_ProcessStartup -ClientOnly -Property @{ ShowWindow = [uint16]0 }
+  $r = Invoke-CimMethod -Namespace root/cimv2 -ClassName Win32_Process -MethodName Create -Arguments @{
+    CommandLine = $cmd; CurrentDirectory = (Split-Path $Exe); ProcessStartupInformation = $startup }
+  if ($r.ReturnValue -ne 0) { throw "Win32_Process.Create failed with code $($r.ReturnValue)" }
   # Loading the world takes a while; give it up to 5 minutes to answer.
   $deadline = (Get-Date).AddMinutes(5)
   while ((Get-Date) -lt $deadline) {
     Start-Sleep -Seconds 10
-    if (Test-ServerQuery) { Log "started and answering on port $QueryPort ($($argList -join ' '))"; return }
+    if (Test-ServerQuery) { Log "started (pid $($r.ProcessId)) and answering on port $QueryPort"; return }
     if (-not (Get-ServerProcess)) { break }
   }
   Stop-Server
   throw "server did not answer on port $QueryPort; check InstancePath and the server log in the instance folder"
 }
 
+function Save-World {
+  [void](Invoke-SeRemote 'PATCH' 'v1/session')
+  Log 'save requested'
+}
+
 function Stop-Server {
   $p = Get-ServerProcess
   if (-not $p) { Log 'not running'; return }
-  # A headless console server has no window to close and no stop command,
-  # so this is a hard stop: anything since the last autosave is lost.
-  $p | Stop-Process -Force
+  $clean = $false
+  if (Test-ServerQuery) {
+    try {
+      Save-World
+      Start-Sleep -Seconds 20   # let the save finish before shutting down
+      [void](Invoke-SeRemote 'DELETE' 'v1/server')
+      Log 'stop requested'
+      $clean = $true
+    } catch {
+      Log "Remote API failed ($($_.Exception.Message)); falling back to a hard stop"
+    }
+  }
+  if ($clean) {
+    # The console server may sit at "press any key" after stopping, so the
+    # process is ended once it stops answering, even if it has not exited.
+    $deadline = (Get-Date).AddSeconds(60)
+    while ((Get-Date) -lt $deadline -and (Get-ServerProcess) -and (Test-ServerQuery)) { Start-Sleep -Seconds 5 }
+    $p | Wait-Process -Timeout 10 -ErrorAction SilentlyContinue
+  }
+  if (Get-ServerProcess) { Get-ServerProcess | Stop-Process -Force }
   $p | Wait-Process -Timeout 60 -ErrorAction SilentlyContinue
   if (Get-ServerProcess) { throw 'server did not stop' }
-  Log 'stopped'
+  if ($clean) { Log 'stopped (saved first)' } else { Log 'stopped (hard stop, no save)' }
 }
 
 try {
   switch ($Action) {
     'Start' { Start-Server }
+    'Save'  { Save-World }
     'Stop'  { Stop-Server }
     'Check' {
       $installed = Get-InstalledBuild
@@ -128,6 +208,7 @@ try {
       $running = [bool](Get-ServerProcess)
       $answering = Test-ServerQuery
       Log "installed build: $installed, latest build: $latest, process running: $running, answering on ${QueryPort}: $answering"
+      if ($running) { Log "remote API: $(Test-RemoteApi)" }
       if (-not $latest) { throw 'could not read the latest build from steamcmd' }
       if ($installed -eq $latest) { Log 'up to date' } else { Log 'UPDATE AVAILABLE' }
     }
