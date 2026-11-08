@@ -85,8 +85,24 @@ docker compose pull --ignore-pull-failures --quiet \
 
 # One up for the whole project so Compose honours depends_on/restart ordering.
 # No --wait: kometa and recyclarr exit by design, so --wait would fail every run.
-docker compose up -d --remove-orphans \
-  || die "docker compose up failed"
+if ! docker compose up -d --remove-orphans; then
+  # Compose aborts the whole up when one container fails to start, leaving the
+  # rest in Created. Retry each service on its own so one broken service cannot
+  # take the host down. No --no-deps: each up also starts that service's
+  # dependencies, so the loop order does not matter, and a service whose
+  # dependency is broken (e.g. traefik-ts -> tailscale) is reported as failed too.
+  log "WARNING: docker compose up failed; retrying each service separately"
+  failed=()
+  while read -r svc; do
+    [[ -n "$svc" ]] || continue
+    docker compose up -d "$svc" </dev/null || failed+=("$svc")
+  done < <(docker compose config --services)
+  # Still a failed run, so OnFailure= sends the email either way.
+  if ((${#failed[@]})); then
+    die "services failed to start: ${failed[*]}"
+  fi
+  die "docker compose up failed, but every service started on retry"
+fi
 
 # Keep two weeks of previous images for rollback; never -a.
 docker image prune -f --filter "until=336h" >/dev/null

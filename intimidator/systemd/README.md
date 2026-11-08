@@ -18,7 +18,12 @@ Daily at 05:00 local time (up to 30 minutes of jitter):
    `docker compose up -d --remove-orphans` for the whole project, so
    `depends_on`/`restart: true` ordering is honoured. There is deliberately no
    `--wait`: kometa and recyclarr exit by design, so `--wait` would fail every
-   run.
+   run. If that `up` fails, Compose has usually left everything after the
+   failing container in Created, so the script retries `docker compose up -d
+   <service>` once per service (dependencies included, no `--no-deps`). Healthy
+   services come back, and the run still fails, naming the services that
+   would not start, including those whose dependency is broken. Pruning is
+   skipped on a failed run.
 5. Prunes dangling images older than 14 days. The previous image stays
    available for rollback.
 
