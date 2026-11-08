@@ -1,0 +1,15 @@
+# Copy to /home/rooday/.duplicacy-util/duplicacy-util.yaml and fill in the
+# SES SMTP credentials. The real file is host-local and never committed.
+notifications:
+  onStart: []
+  onSkip: ["email"]
+  onSuccess: ["email"]
+  onFailure: ["email"]
+
+email:
+  fromAddress: "Duplicacy Intimidator Backup <duplicacy@mail.rooday.com>"
+  toAddress: "Rudhra Raveendran <contact@roo.day>"
+  serverHostname: email-smtp.us-east-1.amazonaws.com
+  serverPort: 587
+  authUsername: "<SES SMTP username>"
+  authPassword: "<SES SMTP password>"

@@ -1,0 +1,17 @@
++etc/*
+-home/rooday/.local/share/docker/*
++home/*
++root/*
++srv/*
++usr/local/*
++usr/
+-var/lib/docker/*
+-var/run/*
+-var/cache/*
+-var/tmp/*
++var/*
++mnt/plex/config/*
++mnt/plex/
++mnt/
++opt/*
+-*
