@@ -108,3 +108,17 @@ fi
 docker image prune -f --filter "until=336h" >/dev/null
 
 log "deploy complete"
+
+# Heartbeat for the Uptime Kuma push monitor on status.rooday.com, so a timer
+# that stops firing alerts too (failures still email via notify-failure.sh).
+# Optional: set KUMA_PUSH_URL in /etc/default/compose-updater.
+NOTIFY_CONFIG="${NOTIFY_CONFIG:-/etc/default/compose-updater}"
+if [[ -r "$NOTIFY_CONFIG" ]]; then
+  # shellcheck source=/dev/null
+  . "$NOTIFY_CONFIG"
+  if [[ -n "${KUMA_PUSH_URL:-}" ]]; then
+    msg="deployed $(as_owner git -C "$REPO_DIR" rev-parse --short HEAD)"
+    curl -fsS --max-time 20 -G "$KUMA_PUSH_URL" --data-urlencode status=up \
+      --data-urlencode "msg=$msg" >/dev/null || log "WARNING: Kuma push failed"
+  fi
+fi
