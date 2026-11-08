@@ -41,7 +41,7 @@ if ! /usr/local/bin/duplicacy 2>/dev/null | grep -q "$DUPLICACY_VERSION"; then
   fetch "https://github.com/gilbertchen/duplicacy/releases/download/v$DUPLICACY_VERSION/duplicacy_linux_x64_$DUPLICACY_VERSION" \
     "$DUPLICACY_SHA256" /usr/local/bin/duplicacy
 fi
-if ! echo "$DUTIL_SHA256  /usr/local/bin/duplicacy-util" | sha256sum -c --quiet - 2>/dev/null; then
+if ! echo "$DUTIL_SHA256  /usr/local/bin/duplicacy-util" | sha256sum -c --quiet - >/dev/null 2>&1; then
   fetch "https://github.com/ROODAY/duplicacy-util/releases/download/v$DUTIL_VERSION/duplicacy-util_linux_x64_v$DUTIL_VERSION" \
     "$DUTIL_SHA256" /usr/local/bin/duplicacy-util
 fi
