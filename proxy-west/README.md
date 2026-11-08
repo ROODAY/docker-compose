@@ -9,7 +9,8 @@ DigitalOcean droplet `137.184.32.90` (SFO, 1 vCPU / 1 GB + 2 GB swap).
 | Uptime Kuma (primary) | `status.rooday.com` | `uptime-kuma`, inside the `tailscale` namespace |
 
 Traefik reads every route from `traefik/dynamic.yml` (no docker socket) and
-gets Let's Encrypt certificates by HTTP-01 (keep the DNS records grey-clouded). Access logs are JSON with
+gets Let's Encrypt certificates by Cloudflare DNS-01. `status*` may be
+orange-clouded; keep the Plex and librespeed records grey. Access logs are JSON with
 `RequestPath` dropped, so Plex tokens in query strings are never written.
 
 Uptime Kuma shares the `tailscale` container's network namespace, so it can

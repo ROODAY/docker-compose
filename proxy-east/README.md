@@ -9,7 +9,8 @@ DigitalOcean droplet `104.248.10.1` (NYC, 1 vCPU / 1 GB + 2 GB swap).
 | Uptime Kuma (backup) | `status2.rooday.com` | `uptime-kuma` container; only monitors `status.rooday.com` |
 
 Traefik reads every route from `traefik/dynamic.yml` (no docker socket) and
-gets Let's Encrypt certificates by HTTP-01 (keep the DNS records grey-clouded). Access logs are JSON with
+gets Let's Encrypt certificates by Cloudflare DNS-01. `status*` may be
+orange-clouded; keep the Plex and librespeed records grey. Access logs are JSON with
 `RequestPath` dropped, so Plex tokens in query strings are never written.
 
 ## First-time setup

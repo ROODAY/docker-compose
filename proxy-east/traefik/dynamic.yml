@@ -1,5 +1,7 @@
 # All routes for proxy-east. Certificates come from the `letsencrypt` resolver
-# (HTTP-01), so these DNS records must stay grey-clouded in Cloudflare.
+# (Cloudflare DNS-01), so they work with the record orange or grey. Keep the
+# Plex and librespeed records grey: Cloudflare's free plan forbids proxying
+# video, caps uploads at 100 MB, and would put itself in the speed test.
 
 tls:
   options:

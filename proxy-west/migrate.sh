@@ -42,17 +42,24 @@ log "preflight"
 [[ -f .env ]] || die "missing $DIR/.env (copy .env.example)"
 # Read values without sourcing: .env is compose syntax, not shell.
 envval() { grep -E "^$1=" .env | tail -n1 | cut -d= -f2- | sed -E "s/^(['\"])(.*)\1$/\2/"; }
-for v in ACME_EMAIL LIBRESPEED_PASSWORD; do
+for v in CF_DNS_API_TOKEN ACME_EMAIL LIBRESPEED_PASSWORD; do
   [[ -n "$(envval "$v")" ]] || die "$v is empty in .env"
 done
-# HTTP-01 needs every hostname to resolve straight to this droplet (grey cloud).
-myip="$(curl -fsS --max-time 5 http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/address)" \
-  || die "cannot read public IP from DigitalOcean metadata"
+verify="$(curl -fsS -H "Authorization: Bearer $(envval CF_DNS_API_TOKEN)" \
+  https://api.cloudflare.com/client/v4/user/tokens/verify)" \
+  || die "Cloudflare rejected CF_DNS_API_TOKEN"
+grep -q '"status":"active"' <<<"$verify" || die "Cloudflare token is not active: $verify"
+echo "cloudflare token: active"
+
+# Orange cloud is fine for status pages, not for Plex (Cloudflare's free plan
+# forbids proxying video and caps uploads at 100 MB) or librespeed.
+myip="$(curl -fsS --max-time 5 http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/address || true)"
 for d in "${DOMAINS[@]}"; do
+  [[ "$d" == *plex* ]] || continue
   ip="$(getent ahostsv4 "$d" | awk 'NR==1{print $1}')"
-  [[ "$ip" == "$myip" ]] || die "$d resolves to '${ip:-nothing}', not $myip (orange cloud on?)"
+  [[ -z "$myip" || "$ip" == "$myip" ]] \
+    || echo "WARNING: $d resolves to ${ip:-nothing}, not $myip; set it to DNS only (grey) in Cloudflare"
 done
-echo "dns: all hostnames point at $myip"
 
 config_out="$(docker compose config 2>&1)" || { echo "$config_out" >&2; die "docker compose config failed"; }
 if grep -qi 'variable is not set' <<<"$config_out"; then

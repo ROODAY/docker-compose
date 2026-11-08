@@ -29,6 +29,8 @@ services:
       # Mount the directory, not the file: git replaces dynamic.yml on pull,
       # and a single-file bind mount would keep serving the old inode.
       - ./traefik:/etc/traefik/dynamic:ro
+    environment:
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
     command:
       - --log.level=WARN
       - --accesslog=true
@@ -51,10 +53,10 @@ services:
       - --entrypoints.websecure.transport.respondingTimeouts.readTimeout=600s
       - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
       - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
-      # HTTP-01 on :80 (Traefik answers the challenge before the HTTPS
-      # redirect). Needs these DNS records grey-clouded (DNS only).
-      - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
-      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      # DNS-01 via Cloudflare, so it works whether a record is orange or grey.
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge=true
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge.resolvers=1.1.1.1:53,1.0.0.1:53
     logging: *logging
 
   librespeed:
