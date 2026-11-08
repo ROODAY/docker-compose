@@ -5,6 +5,8 @@
 # db-dumps/kuma.db. The live kuma.db and its -wal/-shm are excluded in filters,
 # since copying them mid-write can produce a corrupt backup.
 set -eu
+# The dump holds Kuma's credentials, 2FA secret and notification secrets.
+umask 077
 
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 src="$root/data/uptime-kuma/kuma.db"
@@ -13,6 +15,7 @@ tmp="$out/kuma.db.tmp"
 
 [ -f "$src" ] || { echo "pre-backup: $src not found" >&2; exit 1; }
 mkdir -p "$out"
+chmod 700 "$out"
 rm -f "$tmp"
 
 # SQLite's online backup API: safe while Kuma is writing (WAL mode).
