@@ -94,6 +94,13 @@ agent. In `gpedit.msc`:
 
 Stop takes about 30-90 seconds, well inside Proxmox's shutdown timeout.
 
+This only saves a server the boot task started. A server you start by hand
+from a signed-in PowerShell belongs to that sign-in, and Windows ends it at
+sign-out, before shutdown scripts run (the log then shows `[Stop] not
+running`). Nothing breaks; you just lose what happened since the last
+autosave. Reboot once afterwards, or start it with
+`Start-ScheduledTask 'SE server start'` instead of by hand.
+
 ## Day to day
 
 - **Check:** `se-server.ps1 -Action Check -InstancePath <folder>` shows the
@@ -102,7 +109,8 @@ Stop takes about 30-90 seconds, well inside Proxmox's shutdown timeout.
 - **Save now:** `se-server.ps1 -Action Save -InstancePath <folder>`.
 - **Change config or mods:** `se-server.ps1 -Action Stop -InstancePath <folder>`, edit and save in
   the GUI (do not start the server from the GUI), then
-  `se-server.ps1 -Action Start -InstancePath <folder>`.
+  `Start-ScheduledTask 'SE server start'` (so it still saves at shutdown;
+  see above). The log shows when it is up.
 - **Update now:** `se-server.ps1 -Action Update`. Add `-Validate` to have
   steamcmd verify every file, or `-Force` to reinstall and restart anyway.
 - **Log:** `C:\seserver\se-server.log` (steamcmd output included).
