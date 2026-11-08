@@ -16,23 +16,23 @@ rejects.
 |-----------|-----------|--------------|
 | `engager/duplicacy/filters` | `/.duplicacy/filters` | `install.sh` |
 | `engager/duplicacy/engager.yaml` | `/etc/duplicacy-util/engager.yaml` | `install.sh` |
-| `engager/duplicacy/duplicacy-util.yaml.example` | `/etc/duplicacy-util/duplicacy-util.yaml` | you (SES SMTP credentials); `install.sh` copies it once from `/home/rooday/.duplicacy-util` |
+| `engager/duplicacy/duplicacy-util.yaml.example` | `/etc/duplicacy-util/duplicacy-util.yaml` | you (SES SMTP credentials) |
 
 Host-local, never committed: `/.duplicacy/preferences` (B2 key and storage
 password), `/etc/duplicacy-util/duplicacy-util.yaml`, and
 `BACKUP_PUSH_URL` in `/etc/default/compose-updater`.
 
-## Install / move off cron
+## Install
 
-`install.sh` refuses to run while root's crontab still calls
-duplicacy-util, so the backup can never run twice.
+Needs Duplicacy and the duplicacy-util fork in `/usr/local/bin`, an
+initialised `/.duplicacy`, and `/etc/duplicacy-util/duplicacy-util.yaml`.
+Put the Kuma push URL in `/etc/default/compose-updater`:
+
+```
+BACKUP_PUSH_URL="https://status.rooday.com/api/push/<push-token>"
+```
 
 ```bash
-sudo crontab -l | grep duplicacy-util      # note the push token in the URL
-sudo nano /etc/default/compose-updater     # add the line below
-#   BACKUP_PUSH_URL="https://status.rooday.com/api/push/<push-token>"
-sudo crontab -e                            # delete the duplicacy-util line
-cd ~/docker-compose && git pull
 sudo bash engager/duplicacy/install.sh
 ```
 

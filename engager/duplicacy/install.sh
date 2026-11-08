@@ -1,18 +1,17 @@
 #!/usr/bin/env bash
 # Runs this host's whole-system Duplicacy backup (repository root /) from a
-# systemd timer instead of root's crontab. Safe to re-run.
+# daily systemd timer. Safe to re-run.
 #
 #   sudo bash <name>/duplicacy/install.sh
 #
 # Needs, already on the host: /usr/local/bin/duplicacy, the ROODAY fork of
 # /usr/local/bin/duplicacy-util, an initialised /.duplicacy (storage
-# "backblaze"), and /etc/duplicacy-util/duplicacy-util.yaml (copied once from
-# /home/rooday/.duplicacy-util if it is missing). BACKUP_PUSH_URL in
-# /etc/default/compose-updater feeds the Kuma push monitor.
+# "backblaze"), and /etc/duplicacy-util/duplicacy-util.yaml (from
+# duplicacy-util.yaml.example). BACKUP_PUSH_URL in /etc/default/compose-updater
+# feeds the Kuma push monitor.
 set -euo pipefail
 
 CONF_DIR=/etc/duplicacy-util
-OLD_CONF_DIR=/home/rooday/.duplicacy-util
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 NAME="$(basename "$(dirname "$SCRIPT_DIR")")"
@@ -26,20 +25,9 @@ for b in duplicacy duplicacy-util; do
 done
 [[ -f /.duplicacy/preferences ]] || die "/.duplicacy is not initialised"
 
-# Two schedulers would run the backup twice; the cron entry must go first.
-if crontab -l 2>/dev/null | grep -q '^[^#]*duplicacy-util'; then
-  die "root's crontab still runs duplicacy-util. Copy its push URL into
-  /etc/default/compose-updater as BACKUP_PUSH_URL=\"https://status.rooday.com/api/push/<token>\"
-  (no ?status=... part), then delete the line with: sudo crontab -e"
-fi
-
 install -d -m 700 "$CONF_DIR"
-if [[ ! -f "$CONF_DIR/duplicacy-util.yaml" ]]; then
-  [[ -f "$OLD_CONF_DIR/duplicacy-util.yaml" ]] \
-    || die "no $CONF_DIR/duplicacy-util.yaml; create it from $SCRIPT_DIR/duplicacy-util.yaml.example"
-  install -m 600 "$OLD_CONF_DIR/duplicacy-util.yaml" "$CONF_DIR/duplicacy-util.yaml"
-  echo "copied duplicacy-util.yaml from $OLD_CONF_DIR"
-fi
+[[ -f "$CONF_DIR/duplicacy-util.yaml" ]] \
+  || die "no $CONF_DIR/duplicacy-util.yaml; create it (chmod 600) from $SCRIPT_DIR/duplicacy-util.yaml.example"
 install -m 600 "$SCRIPT_DIR/$NAME.yaml" "$CONF_DIR/$NAME.yaml"
 install -m 644 "$SCRIPT_DIR/filters" /.duplicacy/filters
 echo "installed $CONF_DIR/$NAME.yaml and /.duplicacy/filters"
@@ -83,4 +71,3 @@ UNIT_EOF
 systemctl daemon-reload
 systemctl enable --now "$UNIT.timer"
 echo "enabled $UNIT.timer; run one now with: sudo systemctl start $UNIT.service"
-echo "once a timer run has succeeded, $OLD_CONF_DIR can be deleted"
