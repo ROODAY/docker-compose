@@ -13,8 +13,11 @@ set -euo pipefail
 
 DUPLICACY_VERSION=3.3.0
 DUPLICACY_SHA256=a2ac4db7018633b116506e081a029dd6635e9619cf24b85c33144640613416ee
-DUTIL_VERSION=1.5
-DUTIL_SHA256=9a72ba306b605ce3a7dd47312f0046105a3043e1f2d071962a056dd9d09660e1
+# ROODAY's fork: upstream 1.5 rebuilt with a newer gomail. Upstream's binary
+# sends a malformed Content-Type that Amazon SES rejects (554). The fork's
+# binary reports "Version: <dev>", so it is checked by hash, not -version.
+DUTIL_VERSION=1.5.1
+DUTIL_SHA256=f6a61fbad7801af60968d80c4c5fb69bcf7f1ddbaa65e696b709ecbb7b0c3a08
 CONF_DIR=/etc/duplicacy-util
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -38,8 +41,8 @@ if ! /usr/local/bin/duplicacy 2>/dev/null | grep -q "$DUPLICACY_VERSION"; then
   fetch "https://github.com/gilbertchen/duplicacy/releases/download/v$DUPLICACY_VERSION/duplicacy_linux_x64_$DUPLICACY_VERSION" \
     "$DUPLICACY_SHA256" /usr/local/bin/duplicacy
 fi
-if ! /usr/local/bin/duplicacy-util -version 2>/dev/null | grep -q "$DUTIL_VERSION"; then
-  fetch "https://github.com/jeffaco/duplicacy-util/releases/download/v$DUTIL_VERSION/duplicacy-util_linux_x64_$DUTIL_VERSION" \
+if ! echo "$DUTIL_SHA256  /usr/local/bin/duplicacy-util" | sha256sum -c --quiet - 2>/dev/null; then
+  fetch "https://github.com/ROODAY/duplicacy-util/releases/download/v$DUTIL_VERSION/duplicacy-util_linux_x64_v$DUTIL_VERSION" \
     "$DUTIL_SHA256" /usr/local/bin/duplicacy-util
 fi
 echo "duplicacy $DUPLICACY_VERSION, duplicacy-util $DUTIL_VERSION installed"

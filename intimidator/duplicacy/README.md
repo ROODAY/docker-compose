@@ -4,6 +4,11 @@ Duplicacy backs up the whole host (repository root `/`) to Backblaze B2 as
 the storage named `backblaze`. duplicacy-util runs backup, prune and check
 nightly from root's crontab and emails the result.
 
+`/usr/local/bin/duplicacy-util` is the build from the
+[ROODAY/duplicacy-util](https://github.com/ROODAY/duplicacy-util) fork
+(`-version` prints `<dev>`); upstream's binary sends mail that Amazon SES
+rejects.
+
 These files are reference copies of what is on the host. Nothing installs
 them: after changing one here, copy it to the host by hand (table below).
 Converting this host to a systemd timer like `proxy-west/duplicacy` is a
