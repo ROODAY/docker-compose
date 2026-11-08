@@ -37,7 +37,7 @@ http:
   middlewares:
     librespeed-auth:
       basicAuth:
-        # Copied from /etc/nginx/.htpasswd-librespeed by migrate.sh.
+        # bcrypt htpasswd in data/traefik (see README).
         usersFile: /etc/traefik/htpasswd-librespeed
         removeHeader: true
     plex-compress:
