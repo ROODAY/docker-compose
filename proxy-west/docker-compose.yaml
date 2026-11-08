@@ -1,0 +1,115 @@
+# proxy-west: DigitalOcean droplet (137.184.32.90, SFO). Plex proxy for
+# intimidator, librespeed, and the primary Uptime Kuma (status.rooday.com),
+# which reaches *.ts.rooday.com through Tailscale.
+# for port mapping, left side is host, right side is container
+networks:
+  proxy:
+    name: proxy
+    driver: bridge
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+services:
+  traefik:
+    image: traefik:v3.7.17
+    container_name: traefik
+    restart: unless-stopped
+    networks:
+      - proxy
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./data/traefik/letsencrypt:/letsencrypt
+      - ./data/traefik/htpasswd-librespeed:/etc/traefik/htpasswd-librespeed:ro
+      # Mount the directory, not the file: git replaces dynamic.yml on pull,
+      # and a single-file bind mount would keep serving the old inode.
+      - ./traefik:/etc/traefik/dynamic:ro
+    environment:
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+    command:
+      - --log.level=WARN
+      - --accesslog=true
+      # Field filtering only applies to the JSON format.
+      - --accesslog.format=json
+      # Plex sends X-Plex-Token in the query string, which Traefik logs as part
+      # of RequestPath. Traefik cannot redact part of a field, so drop it.
+      # Request headers (including an X-Plex-Token header) are dropped by default.
+      - --accesslog.fields.names.RequestPath=drop
+      # Every route is in dynamic.yml. No docker provider, so this
+      # internet-facing proxy does not need the docker socket.
+      - --providers.file.directory=/etc/traefik/dynamic
+      - --providers.file.watch=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      # Traefik v3 defaults readTimeout to 60s, which cuts off slow uploads
+      # (Plex camera upload). nginx had no equivalent limit.
+      - --entrypoints.websecure.transport.respondingTimeouts.readTimeout=600s
+      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      # DNS-01 via Cloudflare, so it works whether a record is orange or grey.
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge=true
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare
+      - --certificatesresolvers.letsencrypt.acme.dnschallenge.resolvers=1.1.1.1:53,1.0.0.1:53
+    logging: *logging
+
+  librespeed:
+    image: lscr.io/linuxserver/librespeed:v6.3.1-ls299
+    container_name: librespeed
+    restart: unless-stopped
+    networks:
+      - proxy
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+      - PASSWORD=${LIBRESPEED_PASSWORD}
+    volumes:
+      - ./data/librespeed:/config
+    logging: *logging
+
+  tailscale:
+    image: tailscale/tailscale:v1.104.4
+    container_name: tailscale
+    hostname: proxy-west
+    restart: unless-stopped
+    networks:
+      - proxy
+    environment:
+      # Leave TS_AUTHKEY empty to log in interactively: the login URL is
+      # printed in `docker logs tailscale`. State persists in ./data/tailscale.
+      - TS_AUTHKEY=${TS_AUTHKEY:-}
+      - TS_STATE_DIR=/var/lib/tailscale
+      # Kernel networking, so other containers in this namespace (uptime-kuma)
+      # can dial 100.x addresses directly. The image defaults to userspace.
+      - TS_USERSPACE=false
+      - TS_EXTRA_ARGS=--advertise-tags=tag:monitor
+    volumes:
+      - ./data/tailscale:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+    logging: *logging
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:2.5.9
+    container_name: uptime-kuma
+    restart: unless-stopped
+    # Shares tailscale's network namespace so monitors can reach
+    # *.ts.rooday.com. Traefik reaches it at http://tailscale:3001.
+    network_mode: service:tailscale
+    depends_on:
+      tailscale:
+        condition: service_started
+        restart: true
+    volumes:
+      - ./data/uptime-kuma:/app/data
+    mem_limit: 350m
+    logging: *logging

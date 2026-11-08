@@ -1,0 +1,78 @@
+# All routes for proxy-west. Certificates come from the `letsencrypt` resolver
+# (Cloudflare DNS-01), so they work with the record orange or grey. Keep the
+# Plex and librespeed records grey: Cloudflare's free plan forbids proxying
+# video, caps uploads at 100 MB, and would put itself in the speed test.
+
+tls:
+  options:
+    default:
+      # Reject handshakes for hostnames we do not serve (nginx's
+      # ssl_reject_handshake default server did the same).
+      sniStrict: true
+      minVersion: VersionTLS12
+
+http:
+  routers:
+    plex-proxy:
+      rule: Host(`plex-proxy.intimidator.rooday.com`)
+      entryPoints: [websecure]
+      service: plex
+      middlewares: [plex-compress]
+      tls:
+        certResolver: letsencrypt
+    librespeed:
+      rule: Host(`librespeed.plex-proxy.intimidator.rooday.com`)
+      entryPoints: [websecure]
+      service: librespeed
+      middlewares: [librespeed-auth]
+      tls:
+        certResolver: letsencrypt
+    uptime-kuma:
+      rule: Host(`status.rooday.com`)
+      entryPoints: [websecure]
+      service: uptime-kuma
+      tls:
+        certResolver: letsencrypt
+
+  middlewares:
+    librespeed-auth:
+      basicAuth:
+        # Copied from /etc/nginx/.htpasswd-librespeed by migrate.sh.
+        usersFile: /etc/traefik/htpasswd-librespeed
+        removeHeader: true
+    plex-compress:
+      # Same text types nginx gzipped; never media streams.
+      compress:
+        minResponseBodyBytes: 1000
+        includedContentTypes:
+          - text/plain
+          - text/css
+          - text/xml
+          - text/javascript
+          - application/xml
+          - application/javascript
+          - application/x-javascript
+          - application/json
+          - image/svg+xml
+
+  serversTransports:
+    plex:
+      serverName: plex.intimidator.rooday.com
+
+  services:
+    plex:
+      loadBalancer:
+        # Send Host: plex.intimidator.rooday.com, like nginx's proxy_pass did,
+        # so intimidator's Traefik routes it.
+        passHostHeader: false
+        serversTransport: plex
+        servers:
+          - url: https://plex.intimidator.rooday.com
+    librespeed:
+      loadBalancer:
+        servers:
+          - url: http://librespeed:80
+    uptime-kuma:
+      loadBalancer:
+        servers:
+          - url: http://tailscale:3001
