@@ -309,7 +309,7 @@ services:
       - traefik.http.routers.oss.entrypoints=websecure
       - traefik.http.routers.oss.tls.certresolver=cloudflare
   dashy:
-    image: lissy93/dashy:4.9.16
+    image: lissy93/dashy:4.9.17
     container_name: dashy
     networks:
       - public
