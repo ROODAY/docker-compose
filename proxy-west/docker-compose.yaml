@@ -89,6 +89,10 @@ services:
       # Kernel networking, so other containers in this namespace (uptime-kuma)
       # can dial 100.x addresses directly. The image defaults to userspace.
       - TS_USERSPACE=false
+      # The droplet kernel has no legacy iptables tables, and the container
+      # cannot modprobe them; without this, tailscaled's own filter rules
+      # (ts-input etc.) fail to install.
+      - TS_DEBUG_FIREWALL_MODE=nftables
       - TS_EXTRA_ARGS=--advertise-tags=tag:monitor
     volumes:
       - ./data/tailscale:/var/lib/tailscale
