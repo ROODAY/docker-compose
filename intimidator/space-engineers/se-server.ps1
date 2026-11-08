@@ -20,9 +20,11 @@ param(
   [Parameter(Mandatory)] [ValidateSet('Check', 'Start', 'Stop', 'Update')] [string] $Action,
   [string] $SteamCmd = 'C:\steamcmd\steamcmd.exe',
   [string] $InstallDir = 'C:\seserver',
-  # Instance folder holding SpaceEngineers-Dedicated.cfg. Empty = the default
-  # the GUI uses (%APPDATA%\SpaceEngineersDedicated of the account running this).
+  # Instance folder holding SpaceEngineers-Dedicated.cfg and the world. Empty
+  # means the server's own default, which may not be where the GUI saved.
   [string] $InstancePath = '',
+  # Game/query port from the server config; used to check it really is up.
+  [int] $QueryPort = 27016,
   # Optional Uptime Kuma push monitor, pinged after a successful Update run.
   [string] $PushUrl = '',
   [switch] $Force,
@@ -60,15 +62,49 @@ function Get-LatestBuild {
   return $null
 }
 
+function Test-ServerQuery {
+  # Steam A2S_INFO on the game port, the same check Kuma's GameDig monitor makes.
+  $udp = New-Object System.Net.Sockets.UdpClient
+  try {
+    $udp.Client.ReceiveTimeout = 3000
+    $udp.Connect('127.0.0.1', $QueryPort)
+    $req = [byte[]](0xFF, 0xFF, 0xFF, 0xFF) + [Text.Encoding]::ASCII.GetBytes("TSource Engine Query`0")
+    [void]$udp.Send($req, $req.Length)
+    $ep = New-Object System.Net.IPEndPoint ([Net.IPAddress]::Any, 0)
+    $resp = $udp.Receive([ref]$ep)
+    if ($resp.Length -ge 9 -and $resp[4] -eq 0x41) { # challenge: resend with it
+      $req2 = $req + $resp[5..8]
+      [void]$udp.Send($req2, $req2.Length)
+      $resp = $udp.Receive([ref]$ep)
+    }
+    return ($resp.Length -gt 5 -and $resp[4] -eq 0x49)
+  } catch {
+    return $false
+  } finally {
+    $udp.Close()
+  }
+}
+
 function Start-Server {
-  if (Get-ServerProcess) { Log 'already running'; return }
+  if (Get-ServerProcess) {
+    if (Test-ServerQuery) { Log 'already running'; return }
+    # A failed start leaves the process waiting for a key press; clear it.
+    Log 'process exists but the server does not answer queries; restarting it'
+    Stop-Server
+  }
   if (-not (Test-Path $Exe)) { throw "not found: $Exe" }
   $argList = @('-console')
   if ($InstancePath) { $argList += @('-path', "`"$InstancePath`"") }
   Start-Process -FilePath $Exe -ArgumentList $argList -WorkingDirectory (Split-Path $Exe) -WindowStyle Hidden
-  Start-Sleep -Seconds 20
-  if (-not (Get-ServerProcess)) { throw 'server exited right after starting; run it once by hand with -console to see why' }
-  Log "started ($Exe $($argList -join ' '))"
+  # Loading the world takes a while; give it up to 5 minutes to answer.
+  $deadline = (Get-Date).AddMinutes(5)
+  while ((Get-Date) -lt $deadline) {
+    Start-Sleep -Seconds 10
+    if (Test-ServerQuery) { Log "started and answering on port $QueryPort ($($argList -join ' '))"; return }
+    if (-not (Get-ServerProcess)) { break }
+  }
+  Stop-Server
+  throw "server did not answer on port $QueryPort; check InstancePath and the server log in the instance folder"
 }
 
 function Stop-Server {
@@ -90,7 +126,8 @@ try {
       $installed = Get-InstalledBuild
       $latest = Get-LatestBuild
       $running = [bool](Get-ServerProcess)
-      Log "installed build: $installed, latest build: $latest, running: $running"
+      $answering = Test-ServerQuery
+      Log "installed build: $installed, latest build: $latest, process running: $running, answering on ${QueryPort}: $answering"
       if (-not $latest) { throw 'could not read the latest build from steamcmd' }
       if ($installed -eq $latest) { Log 'up to date' } else { Log 'UPDATE AVAILABLE' }
     }

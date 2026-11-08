@@ -10,13 +10,21 @@ mode, started by Scheduled Tasks through `se-server.ps1`:
 
 | Task | Trigger | Runs |
 |---|---|---|
-| `SE server start` | VM boot (+1 min) | `se-server.ps1 -Action Start` |
-| `SE server update` | daily 05:30 | `se-server.ps1 -Action Update`: if Steam has a newer build, stop, update, start; else make sure it is running |
+| `SE server start` | VM boot (+1 min) | `se-server.ps1 -Action Start -InstancePath <folder>` |
+| `SE server update` | daily 05:30 | `se-server.ps1 -Action Update -InstancePath <folder>`: if Steam has a newer build, stop, update, start; else make sure it is running |
 
-Both run as your Windows account, whether or not you are logged in, so the
-console server reads the same config the GUI saves
-(`%APPDATA%\SpaceEngineersDedicated\SpaceEngineers-Dedicated.cfg`). If your
-world lives in another instance folder, pass `-InstancePath <folder>`.
+Both run as your Windows account, whether or not you are logged in. Pass
+`-InstancePath` with the folder holding `SpaceEngineers-Dedicated.cfg` and the
+world (where the GUI saved it); without it the console server finds no world
+and quits. Find it with:
+
+```powershell
+Get-ChildItem C:\ProgramData, $env:APPDATA, C:\seserver -Recurse -Filter SpaceEngineers-Dedicated.cfg -ErrorAction SilentlyContinue | Select-Object FullName, LastWriteTime
+```
+
+`Start` only reports success once the server answers a Steam query on port
+27016 (the same check Kuma makes); a server stuck at "press any key" is
+stopped and reported as a failure.
 
 ## Install
 
@@ -32,14 +40,15 @@ Unblock-File C:\se-tools\se-server.ps1
 # 1. Check what is installed vs. the latest Steam build (changes nothing)
 powershell -NoProfile -ExecutionPolicy Bypass -File C:\se-tools\se-server.ps1 -Action Check
 
-# 2. Close the GUI server if it is running, then test the headless start
-powershell -NoProfile -ExecutionPolicy Bypass -File C:\se-tools\se-server.ps1 -Action Start
+# 2. Stop the server in the GUI and close it, then test the headless start
+$inst = '<folder holding SpaceEngineers-Dedicated.cfg>'
+powershell -NoProfile -ExecutionPolicy Bypass -File C:\se-tools\se-server.ps1 -Action Start -InstancePath $inst
 
 # 3. Register the two tasks (asks for your Windows password once)
 $user = "$env:USERDOMAIN\$env:USERNAME"
 $pw = (Get-Credential $user -Message 'Windows password for the SE tasks').GetNetworkCredential().Password
 $run = { param($a) New-ScheduledTaskAction -Execute 'powershell.exe' `
-  -Argument "-NoProfile -ExecutionPolicy Bypass -File C:\se-tools\se-server.ps1 -Action $a" }
+  -Argument "-NoProfile -ExecutionPolicy Bypass -File C:\se-tools\se-server.ps1 -Action $a -InstancePath `"$inst`"" }
 $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 2) `
   -StartWhenAvailable -DontStopIfGoingOnBatteries -AllowStartIfOnBatteries
 $boot = New-ScheduledTaskTrigger -AtStartup; $boot.Delay = 'PT1M'
@@ -57,7 +66,7 @@ account's password (not the PIN).
 
 - **Change config or mods:** `se-server.ps1 -Action Stop`, edit and save in
   the GUI (do not start the server from the GUI), then
-  `se-server.ps1 -Action Start`.
+  `se-server.ps1 -Action Start -InstancePath <folder>`.
 - **Update now:** `se-server.ps1 -Action Update`. Add `-Validate` to have
   steamcmd verify every file, or `-Force` to reinstall and restart anyway.
 - **Log:** `C:\seserver\se-server.log` (steamcmd output included).
@@ -67,5 +76,6 @@ account's password (not the PIN).
 There is no clean stop for a headless server: `-Action Stop` and a Windows
 shutdown both end the process, so anything since the last autosave is
 lost. Keep the autosave interval short in the GUI (for example 5 minutes).
-Windows shutdown does that by itself, so no shutdown task is needed. A
-clean save-then-stop would need the server's Remote API; not set up.
+Windows shutdown ends it the same way, so a shutdown task would add nothing.
+The server's Remote API (listening on 8080) could do a clean save-then-stop;
+not set up yet.
