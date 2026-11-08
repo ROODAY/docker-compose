@@ -68,6 +68,17 @@ Register-ScheduledTask -TaskName 'SE server update' -Action (& $run Update) `
 If you sign in to Windows with a Microsoft account, the password is that
 account's password (not the PIN).
 
+The GUI can also register an instance as a Windows service (named after the
+instance, e.g. `Esemania`). Keep those disabled: a service starts the server
+at boot before the task does, and it would fight `Update` over restarts.
+
+```powershell
+Get-CimInstance Win32_Service | Where-Object PathName -like '*SpaceEngineersDedicated*' |
+  ForEach-Object { Stop-Service $_.Name -ErrorAction SilentlyContinue; Set-Service $_.Name -StartupType Disabled }
+```
+
+(Run `-Action Stop` first if one is running, so the world is saved.)
+
 ## Stop cleanly at Windows shutdown
 
 A Group Policy shutdown script runs `Stop` (save, then stop) before Windows
