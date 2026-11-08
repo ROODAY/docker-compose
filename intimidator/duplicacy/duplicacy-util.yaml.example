@@ -1,4 +1,4 @@
-# Copy to /home/rooday/.duplicacy-util/duplicacy-util.yaml and fill in the
+# Copy to /etc/duplicacy-util/duplicacy-util.yaml (chmod 600) and fill in the
 # SES SMTP credentials. The real file is host-local and never committed.
 notifications:
   onStart: []
