@@ -308,22 +308,6 @@ services:
       - traefik.http.services.oss.loadbalancer.server.port=3000
       - traefik.http.routers.oss.entrypoints=websecure
       - traefik.http.routers.oss.tls.certresolver=cloudflare
-  dashy:
-    image: lissy93/dashy:4.9.17
-    container_name: dashy
-    networks:
-      - public
-      - private
-    volumes:
-      - ${BASE_DOCKER_VOLUME_PATH}/dashy:/app/user-data/
-    restart: unless-stopped
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.dashy.rule=Host(`dashy.intimidator.ts.rooday.com`)
-      - traefik.http.services.dashy.loadbalancer.server.port=8080
-      - traefik.http.routers.dashy.entrypoints=websecure
-      - traefik.http.routers.dashy.tls.certresolver=cloudflare
-      - traefik.docker.network=private
   cleanuparr:
     image: ghcr.io/cleanuparr/cleanuparr:2.11.0
     container_name: cleanuparr

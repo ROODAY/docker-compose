@@ -215,23 +215,6 @@ services:
       - traefik.http.services.calibre-web.loadbalancer.server.port=8083
       - traefik.http.routers.calibre-web.entrypoints=websecure
       - traefik.http.routers.calibre-web.tls.certresolver=cloudflare
-  uptime-kuma:
-    image: louislam/uptime-kuma:2.5.9
-    container_name: uptime-kuma
-    networks:
-      - public
-      - private
-    volumes:
-      - ${BASE_DOCKER_VOLUME_PATH}/uptime-kuma:/data
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.kuma.rule=Host(`uptime.intimidator.rooday.com`)
-      - traefik.http.services.kuma.loadbalancer.server.port=3001
-      - traefik.http.routers.kuma.entrypoints=websecure
-      - traefik.http.routers.kuma.tls.certresolver=cloudflare
-      - traefik.docker.network=public
   plexautolanguages:
     image: remirigal/plex-auto-languages:v1.2.3
     container_name: PlexAutoLanguages
