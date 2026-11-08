@@ -6,7 +6,7 @@
   "prHourlyLimit": 0,
   "dependencyDashboard": true,
   "docker-compose": {
-    "managerFilePatterns": ["/^(?:engager|intimidator)\\/.*\\.ya?ml$/"]
+    "managerFilePatterns": ["/^(?:engager|intimidator|proxy-west|proxy-east)\\/.*\\.ya?ml$/"]
   },
   "packageRules": [
     {

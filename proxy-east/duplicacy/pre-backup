@@ -1,0 +1,27 @@
+#!/bin/sh
+# Duplicacy runs .duplicacy/scripts/pre-backup before every `duplicacy backup`,
+# including runs started by duplicacy-util; a non-zero exit aborts the backup.
+# It writes a consistent copy of Uptime Kuma's SQLite database to
+# db-dumps/kuma.db. The live kuma.db and its -wal/-shm are excluded in filters,
+# since copying them mid-write can produce a corrupt backup.
+set -eu
+
+root="$(cd "$(dirname "$0")/../.." && pwd)"
+src="$root/data/uptime-kuma/kuma.db"
+out="$root/db-dumps"
+tmp="$out/kuma.db.tmp"
+
+[ -f "$src" ] || { echo "pre-backup: $src not found" >&2; exit 1; }
+mkdir -p "$out"
+rm -f "$tmp"
+
+# SQLite's online backup API: safe while Kuma is writing (WAL mode).
+sqlite3 -bail "$src" ".timeout 30000" ".backup '$tmp'"
+
+check="$(sqlite3 "$tmp" 'PRAGMA integrity_check;')"
+if [ "$check" != "ok" ]; then
+  echo "pre-backup: dump failed integrity_check: $check" >&2
+  exit 1
+fi
+mv -f "$tmp" "$out/kuma.db"
+echo "pre-backup: wrote $out/kuma.db ($(du -h "$out/kuma.db" | cut -f1))"

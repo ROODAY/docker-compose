@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily proxy-east deploy
+
+[Timer]
+OnCalendar=*-*-* 09:30:00 UTC
+RandomizedDelaySec=30m
+Persistent=true
+AccuracySec=1m
+Unit=proxy-east-update.service
+
+[Install]
+WantedBy=timers.target

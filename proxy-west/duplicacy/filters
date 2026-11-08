@@ -1,0 +1,10 @@
+# Installed to .duplicacy/filters by duplicacy/install.sh.
+# Paths are relative to this folder (the Duplicacy repository root).
+# Everything not excluded here is backed up: compose files, .env, data/.
+
+# Live Uptime Kuma database. The pre-backup script backs it up as
+# db-dumps/kuma.db instead.
+-data/uptime-kuma/kuma.db
+-data/uptime-kuma/kuma.db-wal
+-data/uptime-kuma/kuma.db-shm
+-db-dumps/kuma.db.tmp

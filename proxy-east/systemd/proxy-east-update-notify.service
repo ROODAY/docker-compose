@@ -1,0 +1,8 @@
+[Unit]
+Description=Report a failed proxy-east deploy to Uptime Kuma
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/local/lib/proxy-east-updater/notify-failure.sh proxy-east-update.service
