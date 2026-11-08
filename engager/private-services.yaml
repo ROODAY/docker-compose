@@ -138,8 +138,7 @@ services:
       - DOCKER_MODS=ghcr.io/gilbn/theme.park:sonarr
       - TP_THEME=dracula
     volumes:
-      # - ./data/sonarr:/config
-      - /home/rooday/docker-data/sonarr:/config
+      - ./data/sonarr:/config
       - /mnt/storage:/data
     ports:
       - 8989:8989
