@@ -84,7 +84,7 @@ services:
       - traefik.http.routers.homeassistant.entrypoints=websecure
       - traefik.http.routers.homeassistant.tls.certresolver=cloudflare
       - traefik.http.routers.homeassistant.service=homeassistant
-      - traefik.http.services.homeassistant.loadbalancer.server.url=http://192.168.0.195:8123
+      - traefik.http.services.homeassistant.loadbalancer.server.url=http://192.168.0.198:8123
       - traefik.http.services.homeassistant.loadbalancer.passhostheader=true
       - traefik.http.middlewares.ha-headers.headers.customrequestheaders.X-Forwarded-Proto=https
       - traefik.http.middlewares.ha-headers.headers.customrequestheaders.X-Forwarded-Host=ha.intimidator.ts.rooday.com
