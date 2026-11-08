@@ -26,5 +26,7 @@ if [ "$check" != "ok" ]; then
   echo "pre-backup: dump failed integrity_check: $check" >&2
   exit 1
 fi
+# SQLite chmods new files to 0644 regardless of umask.
+chmod 600 "$tmp"
 mv -f "$tmp" "$out/kuma.db"
 echo "pre-backup: wrote $out/kuma.db ($(du -h "$out/kuma.db" | cut -f1))"
