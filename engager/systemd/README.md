@@ -1,8 +1,7 @@
 # engager deploy
 
 Git is the source of truth. Renovate opens image-update PRs, and this systemd
-timer deploys whatever lands on `main` to engager. It replaces
-`engager/pull_and_redeploy.sh`.
+timer deploys whatever lands on `main` to engager.
 
 ## What the timer does
 
@@ -96,18 +95,10 @@ sudo systemctl start engager-update.service
 journalctl -u engager-update -f
 ```
 
-## Rollout order
+## Updates
 
-1. Merge `renovate.json` and install the Mend Renovate app.
-2. Let Renovate open the `corsproxy` digest PR and merge it before enabling the
-   timer. Until that pin is on `main`, the daily pull can still move
-   `corsproxy:latest`.
-3. docksmith has been removed from the engager compose file. The first deploy's
-   `docker compose up -d --remove-orphans` deletes the still-running container.
-   To remove it immediately: `docker rm -f docksmith`. Its state in
-   `engager/data/docksmith` can be deleted once you are happy.
-4. `sudo bash ./engager/systemd/install.sh`
-5. `sudo systemctl start engager-update.service` and watch the journal.
+Image updates come from Renovate. See [Updates](../../README.md#updates) in
+the root README for what automerges and how to push an urgent update.
 
 ## Failure email
 

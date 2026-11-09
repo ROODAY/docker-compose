@@ -1,8 +1,7 @@
 # intimidator deploy
 
 Git is the source of truth. Renovate opens image-update PRs, and this systemd
-timer deploys whatever lands on `main` to intimidator. It replaces
-`intimidator/pull_and_redeploy.sh`.
+timer deploys whatever lands on `main` to intimidator.
 
 ## What the timer does
 
@@ -92,16 +91,10 @@ sudo systemctl start intimidator-update.service
 journalctl -u intimidator-update -f
 ```
 
-## Rollout order
+## Updates
 
-1. Merge `renovate.json` and let Renovate open the first intimidator PRs.
-2. `sudo bash ./intimidator/systemd/install.sh`
-3. `sudo systemctl start intimidator-update.service` and watch the journal.
-
-docksmith has been removed from the intimidator compose files. On the deploy
-that carries that commit, `docker compose up -d --remove-orphans` deletes the
-still-running container. Its state in `${BASE_DOCKER_VOLUME_PATH}/docksmith`
-can be deleted once you are happy.
+Image updates come from Renovate. See [Updates](../../README.md#updates) in
+the root README for what automerges and how to push an urgent update.
 
 ## Failure email
 
