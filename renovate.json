@@ -104,6 +104,55 @@
       "matchPackageNames": ["valkey/valkey", "docker.io/valkey/valkey"],
       "matchFileNames": ["intimidator/immich.yaml"],
       "enabled": false
+    },
+    {
+      "description": "Low-risk apps: automerge minor/patch/digest updates once 3 days old, committed straight to main. Opt-in list so new images stay manual.",
+      "matchDatasources": ["docker"],
+      "matchFileNames": ["engager/**", "intimidator/**"],
+      "matchPackageNames": [
+        "lscr.io/linuxserver/sonarr", "lscr.io/linuxserver/radarr", "lscr.io/linuxserver/lidarr",
+        "lscr.io/linuxserver/prowlarr", "lscr.io/linuxserver/bazarr", "lscr.io/linuxserver/tautulli",
+        "lscr.io/linuxserver/librespeed", "lscr.io/linuxserver/calibre", "lscr.io/linuxserver/calibre-web",
+        "lscr.io/linuxserver/piper", "lscr.io/linuxserver/plex",
+        "ghcr.io/recyclarr/recyclarr", "kometateam/kometa", "ghcr.io/cleanuparr/cleanuparr",
+        "ghcr.io/flaresolverr/flaresolverr", "nicolargo/glances", "ghcr.io/analogj/scrutiny",
+        "timothyjmiller/cloudflare-ddns", "remirigal/plex-auto-languages", "thomst08/requestrr",
+        "ghcr.io/chrisae9/synclounge", "curlimages/curl",
+        "bsyed/troddit", "imjacobclark/cors-container"
+      ],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "automerge": true,
+      "automergeType": "branch",
+      "ignoreTests": true,
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "Stateful or networked apps: automerge patch releases only, once 3 days old. Minor and major stay as PRs.",
+      "matchDatasources": ["docker"],
+      "matchFileNames": ["engager/**", "intimidator/**"],
+      "matchPackageNames": [
+        "qmcgaw/gluetun", "lscr.io/linuxserver/qbittorrent", "grafana/grafana", "influxdb",
+        "coturn/coturn", "nginx", "docker.io/library/redis", "docker.io/actualbudget/actual-server",
+        "vabene1111/recipes", "ghcr.io/gramps-project/grampsweb", "matrixdotorg/synapse", "ghost",
+        "ghcr.io/immich-app/immich-server", "ghcr.io/immich-app/immich-machine-learning",
+        "mysql", "docker.io/library/mysql"
+      ],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "branch",
+      "ignoreTests": true,
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "Postgres minor releases (16.15 -> 16.16) are its bug-fix releases; automerge them within major 16.",
+      "matchDatasources": ["docker"],
+      "matchFileNames": ["engager/**", "intimidator/**"],
+      "matchPackageNames": ["postgres", "docker.io/library/postgres"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true,
+      "automergeType": "branch",
+      "ignoreTests": true,
+      "minimumReleaseAge": "3 days"
     }
   ]
 }
