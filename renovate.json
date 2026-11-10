@@ -116,7 +116,7 @@
         "lscr.io/linuxserver/piper", "lscr.io/linuxserver/plex",
         "ghcr.io/recyclarr/recyclarr", "kometateam/kometa", "ghcr.io/cleanuparr/cleanuparr",
         "ghcr.io/flaresolverr/flaresolverr", "nicolargo/glances", "ghcr.io/analogj/scrutiny",
-        "timothyjmiller/cloudflare-ddns", "remirigal/plex-auto-languages", "thomst08/requestrr",
+        "timothyjmiller/cloudflare-ddns", "ghcr.io/journeydocker/plex-auto-languages", "thomst08/requestrr",
         "ghcr.io/chrisae9/synclounge", "curlimages/curl",
         "bsyed/troddit", "imjacobclark/cors-container"
       ],
