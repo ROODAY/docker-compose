@@ -27,7 +27,7 @@ services:
       - traefik.http.routers.plex.entrypoints=websecure
       - traefik.http.routers.plex.tls.certresolver=cloudflare
   tautulli:
-    image: lscr.io/linuxserver/tautulli:v2.18.2-ls250
+    image: lscr.io/linuxserver/tautulli:v2.19.1-ls252
     container_name: tautulli
     networks:
       - public
