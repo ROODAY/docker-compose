@@ -28,7 +28,7 @@ services:
     labels:
       - traefik.enable=false
   traefik-ts:
-    image: traefik:v3.7.17
+    image: traefik:v3.7.18
     container_name: traefik-ts
     restart: unless-stopped
     network_mode: service:tailscale
@@ -86,7 +86,7 @@ services:
       - traefik.http.services.proxmox.loadbalancer.serversTransport=insecure@file
       - traefik.http.services.proxmox.loadbalancer.passhostheader=true
   traefik:
-    image: traefik:v3.7.17
+    image: traefik:v3.7.18
     container_name: traefik
     restart: unless-stopped
     networks:
