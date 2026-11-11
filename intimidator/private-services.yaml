@@ -134,7 +134,7 @@ services:
       - traefik.http.routers.sonarr.entrypoints=websecure
       - traefik.http.routers.sonarr.tls.certresolver=cloudflare
   lidarr:
-    image: lscr.io/linuxserver/lidarr:3.1.6.5079-ls47
+    image: lscr.io/linuxserver/lidarr:3.1.6.5079-ls48
     container_name: lidarr
     networks:
       - private
