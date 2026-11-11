@@ -151,7 +151,7 @@ services:
     depends_on:
       - tandoor_db
   ghost:
-    image: ghost:6.75.0-alpine
+    image: ghost:6.76.0-alpine
     container_name: ghost
     networks:
       - public
