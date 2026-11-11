@@ -36,7 +36,7 @@ if [[ -n "$invocation" ]]; then
 fi
 reason="${reason:-see journalctl -u $UNIT}"
 
-curl -fsS --max-time 20 -G "$KUMA_PUSH_URL" \
+curl -fsS --max-time 20 --retry 6 --retry-delay 5 --retry-connrefused -G "$KUMA_PUSH_URL" \
   --data-urlencode status=down \
   --data-urlencode "msg=$UNIT failed on $host: ${reason:0:200}" >/dev/null \
   || { log "Kuma push failed"; exit 1; }

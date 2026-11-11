@@ -65,7 +65,7 @@ SuccessExitStatus=56
 # Heartbeat for an Uptime Kuma push monitor; runs only after a successful
 # backup, so a failed or missed backup alerts once the heartbeat lapses.
 EnvironmentFile=-/etc/default/compose-updater
-ExecStartPost=-/bin/sh -c 'test -z "\${BACKUP_PUSH_URL}" || curl -fsS -m 20 "\${BACKUP_PUSH_URL}?status=up&msg=OK" >/dev/null'
+ExecStartPost=-/bin/sh -c 'test -z "\${BACKUP_PUSH_URL}" || curl -fsS -m 20 --retry 6 --retry-delay 5 --retry-connrefused -G "\${BACKUP_PUSH_URL}" --data-urlencode status=up --data-urlencode "msg=$NAME backup OK" >/dev/null || echo "WARNING: Kuma backup push failed" >&2'
 Nice=10
 IOSchedulingClass=idle
 TimeoutStartSec=2h

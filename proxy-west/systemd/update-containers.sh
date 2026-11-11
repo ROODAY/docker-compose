@@ -115,7 +115,7 @@ if [[ -r "$NOTIFY_CONFIG" ]]; then
   . "$NOTIFY_CONFIG"
   if [[ -n "${KUMA_PUSH_URL:-}" ]]; then
     msg="deployed $(as_owner git -C "$REPO_DIR" rev-parse --short HEAD)"
-    curl -fsS --max-time 20 -G "$KUMA_PUSH_URL" --data-urlencode status=up \
+    curl -fsS --max-time 20 --retry 6 --retry-delay 5 --retry-connrefused -G "$KUMA_PUSH_URL" --data-urlencode status=up \
       --data-urlencode "msg=$msg" >/dev/null || log "WARNING: Kuma push failed"
   fi
 fi
