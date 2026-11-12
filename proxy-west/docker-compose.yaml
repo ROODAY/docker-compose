@@ -103,7 +103,7 @@ services:
     logging: *logging
 
   uptime-kuma:
-    image: louislam/uptime-kuma:2.5.10
+    image: louislam/uptime-kuma:2.5.11
     container_name: uptime-kuma
     restart: unless-stopped
     # Shares tailscale's network namespace so monitors can reach
