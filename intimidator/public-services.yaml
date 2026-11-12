@@ -126,7 +126,7 @@ services:
     container_name: tandoor_db
     networks:
       - public
-    image: postgres:16.15-alpine
+    image: postgres:16.16-alpine
     volumes:
       - ${BASE_DOCKER_VOLUME_PATH}/tandoor/postgres:/var/lib/postgresql/data
     env_file:
