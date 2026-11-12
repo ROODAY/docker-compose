@@ -75,7 +75,7 @@ services:
     logging: *logging
 
   uptime-kuma:
-    image: louislam/uptime-kuma:2.5.9
+    image: louislam/uptime-kuma:2.5.10
     container_name: uptime-kuma
     restart: unless-stopped
     networks:
