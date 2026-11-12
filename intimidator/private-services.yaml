@@ -362,7 +362,7 @@ services:
               count: 1
               capabilities: [gpu]
   piper:
-    image: lscr.io/linuxserver/piper:2.5.2-ls136
+    image: lscr.io/linuxserver/piper:2.5.3-ls138
     container_name: wyoming-piper
     restart: unless-stopped
     networks:
