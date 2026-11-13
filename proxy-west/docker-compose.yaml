@@ -75,7 +75,7 @@ services:
     logging: *logging
 
   tailscale:
-    image: tailscale/tailscale:v1.104.4
+    image: tailscale/tailscale:v1.104.7
     container_name: tailscale
     hostname: proxy-west
     restart: unless-stopped
