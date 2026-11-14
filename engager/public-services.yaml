@@ -27,7 +27,7 @@ services:
       - traefik.http.routers.plex.entrypoints=websecure
       - traefik.http.routers.plex.tls.certresolver=cloudflare
   kometa:
-    image: kometateam/kometa:v2.5.4
+    image: kometateam/kometa:v2.5.5
     container_name: kometa
     networks:
       - public

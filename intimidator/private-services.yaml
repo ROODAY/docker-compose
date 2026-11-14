@@ -251,7 +251,7 @@ services:
       - traefik.http.routers.actual.entrypoints=websecure
       - traefik.http.routers.actual.tls.certresolver=cloudflare
   kometa:
-    image: kometateam/kometa:v2.5.4
+    image: kometateam/kometa:v2.5.5
     container_name: kometa
     networks:
       - public
