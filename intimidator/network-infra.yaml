@@ -28,7 +28,7 @@ services:
     labels:
       - traefik.enable=false
   traefik-ts:
-    image: traefik:v3.7.18
+    image: traefik:v3.7.19
     container_name: traefik-ts
     restart: unless-stopped
     network_mode: service:tailscale
@@ -91,7 +91,7 @@ services:
       - traefik.http.middlewares.ha-headers.headers.customrequestheaders.X-Forwarded-Port=443
       - traefik.http.routers.homeassistant.middlewares=ha-headers
   traefik:
-    image: traefik:v3.7.18
+    image: traefik:v3.7.19
     container_name: traefik
     restart: unless-stopped
     networks:
