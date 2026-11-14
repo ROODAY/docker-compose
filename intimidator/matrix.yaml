@@ -43,7 +43,7 @@ services:
       - traefik.http.routers.matrix.entrypoints=websecure
       - traefik.http.routers.matrix.tls.certresolver=cloudflare
   coturn:
-    image: coturn/coturn:4.18.0
+    image: coturn/coturn:4.19.0
     container_name: matrix-coturn
     restart: unless-stopped
     command: >
