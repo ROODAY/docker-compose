@@ -25,7 +25,7 @@ services:
       - traefik.http.routers.influxdb.tls.certresolver=cloudflare
   grafana:
     container_name: grafana
-    image: grafana/grafana:13.3.0
+    image: grafana/grafana:13.3.1
     networks:
       - public
     user: 1000:1000
