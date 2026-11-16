@@ -19,7 +19,7 @@ straight to `main` with no PR, and the next timer run deploys it:
 | Tier | Updates merged | Examples |
 |---|---|---|
 | Low-risk apps | minor, patch, digest | LinuxServer *arr apps, plex, kometa, recyclarr |
-| Stateful apps | patch only | ghost, synapse, immich, gluetun, qbittorrent, mysql |
+| Stateful apps | patch only | ghost, immich, gluetun, qbittorrent, mysql |
 | Postgres | minor within 16 | postgres (its minors are bug-fix releases) |
 
 Everything else arrives as a PR, including any newly added image. These are
@@ -38,6 +38,6 @@ step is manual:
 
 **Rollback.** `git revert` the update commit and push, then run
 `update-now.sh`. The previous image stays on the host for 14 days. Some apps
-migrate their database on start (ghost, synapse, grampsweb, tandoor), and for
+migrate their database on start (ghost, grampsweb, tandoor), and for
 those you may also need to restore their data from the nightly Duplicacy
 backup.
