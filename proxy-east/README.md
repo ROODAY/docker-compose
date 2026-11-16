@@ -6,7 +6,7 @@ DigitalOcean droplet `104.248.10.1` (NYC, 1 vCPU / 1 GB + 2 GB swap).
 |---|---|---|
 | Plex edge, home proxy of engager | `plex-proxy.engager.rooday.com` | `https://plex.engager.rooday.com` |
 | Plex edge, relay | `plex-proxy.intimidator.rooday.com` | `proxy-west`, falling back to `https://plex.intimidator.rooday.com` |
-| librespeed (basic auth) | `librespeed.plex-proxy.engager.rooday.com` | `librespeed` container |
+| librespeed (basic auth) | `librespeed.proxy-east.rooday.com` | `librespeed` container |
 | Uptime Kuma (backup) | `status2.rooday.com` | `uptime-kuma` container; only monitors `status.rooday.com` |
 
 Traefik reads its routes from `traefik/dynamic.yml` and the shared
