@@ -28,9 +28,10 @@ fi
 REPO_DIR="$(as_owner git -C "$PROJECT_DIR" rev-parse --show-toplevel)" \
   || die "cannot resolve repo root from $PROJECT_DIR"
 
-# Keep the checkout on origin/main. Refuse to ship uncommitted proxy-west state
-# (tracked edits, staged edits, or untracked files under proxy-west/).
-status_out="$(as_owner git -C "$REPO_DIR" status --porcelain --untracked-files=all -- proxy-west)" \
+# Keep the checkout on origin/main. Refuse to ship uncommitted state: tracked
+# edits, staged edits, or untracked files under proxy-west/ or under the shared
+# plex-edge/ that this proxy's Traefik loads.
+status_out="$(as_owner git -C "$REPO_DIR" status --porcelain --untracked-files=all -- proxy-west plex-edge)" \
   || die "cannot read git status for $REPO_DIR"
 if [[ -z "$status_out" ]]; then
   PREV="$(as_owner git -C "$REPO_DIR" rev-parse --short HEAD)"
@@ -50,9 +51,9 @@ if [[ -z "$status_out" ]]; then
   fi
 else
   if [[ "${ALLOW_DIRTY:-0}" == "1" ]]; then
-    log "WARNING: dirty proxy-west worktree; ALLOW_DIRTY=1 so deploying anyway"
+    log "WARNING: dirty proxy-west or plex-edge worktree; ALLOW_DIRTY=1 so deploying anyway"
   else
-    die "dirty proxy-west worktree; commit, discard, or rerun with ALLOW_DIRTY=1"
+    die "dirty proxy-west or plex-edge worktree; commit, discard, or rerun with ALLOW_DIRTY=1"
   fi
 fi
 
@@ -102,6 +103,12 @@ if ! docker compose up -d --remove-orphans; then
   fi
   die "docker compose up failed, but every service started on retry"
 fi
+
+# Traefik's file provider does not watch its subdirectories (see
+# docker-compose.yaml), so make it re-read its config. Harmless when nothing
+# changed or the container was just recreated.
+docker compose kill -s HUP traefik >/dev/null \
+  || log "WARNING: could not signal traefik to reload its config"
 
 # Keep two weeks of previous images for rollback; never -a.
 docker image prune -f --filter "until=336h" >/dev/null

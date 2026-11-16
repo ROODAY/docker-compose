@@ -1,0 +1,8 @@
+[Unit]
+Description=Report a failed proxy-blr deploy to Uptime Kuma
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/local/lib/proxy-blr-updater/notify-failure.sh proxy-blr-update.service

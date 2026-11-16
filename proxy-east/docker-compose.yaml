@@ -26,11 +26,16 @@ services:
     volumes:
       - ./data/traefik/letsencrypt:/letsencrypt
       - ./data/traefik/htpasswd-librespeed:/etc/traefik/htpasswd-librespeed:ro
-      # Mount the directory, not the file: git replaces dynamic.yml on pull,
-      # and a single-file bind mount would keep serving the old inode.
-      - ./traefik:/etc/traefik/dynamic:ro
+      # Mount directories, not files: git replaces files on pull, and a
+      # single-file bind mount would keep serving the old inode. The file
+      # provider loads both subdirectories: this proxy's own routes, and the
+      # Plex routing shared by every proxy (../plex-edge).
+      - ./traefik:/etc/traefik/dynamic/local:ro
+      - ../plex-edge/traefik:/etc/traefik/dynamic/plex-edge:ro
     environment:
       - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+      # Which proxy this is, for ../plex-edge/traefik/plex.yml.
+      - PROXY_NAME=proxy-east
     command:
       - --log.level=WARN
       - --accesslog=true
@@ -40,10 +45,13 @@ services:
       # of RequestPath. Traefik cannot redact part of a field, so drop it.
       # Request headers (including an X-Plex-Token header) are dropped by default.
       - --accesslog.fields.names.RequestPath=drop
-      # Every route is in dynamic.yml. No docker provider, so this
+      # Every route is in the file provider. No docker provider, so this
       # internet-facing proxy does not need the docker socket.
       - --providers.file.directory=/etc/traefik/dynamic
-      - --providers.file.watch=true
+      # No watch: Traefik only watches the top directory, which here holds
+      # just the two mounted subdirectories. update-containers.sh sends
+      # SIGHUP after every deploy instead; after a manual edit run
+      # `docker kill -s HUP traefik`.
       - --entrypoints.web.address=:80
       - --entrypoints.web.http.redirections.entryPoint.to=websecure
       - --entrypoints.web.http.redirections.entryPoint.scheme=https

@@ -4,12 +4,14 @@ DigitalOcean droplet `137.184.32.90` (SFO, 1 vCPU / 1 GB + 2 GB swap).
 
 | Service | Host | Backend |
 |---|---|---|
-| Plex proxy | `plex-proxy.intimidator.rooday.com` | `https://plex.intimidator.rooday.com` |
+| Plex edge, home proxy of intimidator | `plex-proxy.intimidator.rooday.com` | `https://plex.intimidator.rooday.com` |
+| Plex edge, relay | `plex-proxy.engager.rooday.com` | `proxy-east`, falling back to `https://plex.engager.rooday.com` |
 | librespeed (basic auth) | `librespeed.plex-proxy.intimidator.rooday.com` | `librespeed` container |
 | Uptime Kuma (primary) | `status.rooday.com` | `uptime-kuma`, inside the `tailscale` namespace |
 
-Traefik reads every route from `traefik/dynamic.yml` (no docker socket) and
-gets Let's Encrypt certificates by Cloudflare DNS-01. `status*` may be
+Traefik reads its routes from `traefik/dynamic.yml` and the shared
+`../plex-edge/traefik/plex.yml` (no docker socket; see `../plex-edge/README.md`)
+and gets Let's Encrypt certificates by Cloudflare DNS-01. `status*` may be
 orange-clouded; keep the Plex and librespeed records grey. Access logs are JSON with
 `RequestPath` dropped, so Plex tokens in query strings are never written.
 
@@ -27,6 +29,7 @@ install -m 600 /dev/null data/traefik/letsencrypt/acme.json
 # Traefik basicAuth reads only bcrypt, apr1 or SHA1 hashes (apt install apache2-utils).
 htpasswd -B -c data/traefik/htpasswd-librespeed <user> && chmod 600 data/traefik/htpasswd-librespeed
 docker compose up -d
+# TCP tuning (BBR) for the Plex relays: see ../plex-edge/README.md
 # then the daily auto-deploy timer: see systemd/README.md
 docker logs tailscale 2>&1 | grep -i login.tailscale   # open the URL to join
 ```

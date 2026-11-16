@@ -1,0 +1,27 @@
+# Routes specific to proxy-blr. The Plex routes and the TLS options are shared
+# by every proxy: plex-edge/traefik/plex.yml at the repo root. Certificates
+# come from the `letsencrypt` resolver (Cloudflare DNS-01). Keep the
+# librespeed record grey so Cloudflare is not in the speed test.
+
+http:
+  routers:
+    librespeed:
+      rule: Host(`librespeed.proxy-blr.rooday.com`)
+      entryPoints: [websecure]
+      service: librespeed
+      middlewares: [librespeed-auth]
+      tls:
+        certResolver: letsencrypt
+
+  middlewares:
+    librespeed-auth:
+      basicAuth:
+        # bcrypt htpasswd in data/traefik (see README).
+        usersFile: /etc/traefik/htpasswd-librespeed
+        removeHeader: true
+
+  services:
+    librespeed:
+      loadBalancer:
+        servers:
+          - url: http://librespeed:80

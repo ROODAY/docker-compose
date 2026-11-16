@@ -31,7 +31,8 @@ Test the failure path: `sudo systemctl start proxy-east-update-notify.service`.
 
 ## Editing on the droplet
 
-A dirty `proxy-east/` checkout is refused (`ERROR: dirty proxy-east worktree`).
+A dirty `proxy-east/` or `plex-edge/` checkout is refused
+(`ERROR: dirty proxy-east or plex-edge worktree`).
 Commit and push from the droplet (or anywhere) and the next run deploys it.
 
 Uninstall: `sudo bash ./proxy-east/systemd/install.sh --uninstall`.

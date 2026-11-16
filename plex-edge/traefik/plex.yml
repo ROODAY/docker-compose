@@ -1,0 +1,115 @@
+# Shared Plex edge routing, loaded by every proxy-* Traefik. See ../README.md.
+#
+# Traefik renders this file as a Go template (sprig functions available).
+# PROXY_NAME (set in each proxy's docker-compose.yaml) says which proxy this is.
+#
+# Every proxy serves every plex-proxy.<server>.rooday.com name, because DNS
+# (edge.cdn.rooday.com, Route 53 latency records) sends a client to its
+# nearest proxy whatever server it wants. Then, per server:
+#   - this proxy is the server's home proxy -> forward to the origin,
+#     https://plex.<server>.rooday.com
+#   - otherwise -> relay to the home proxy at https://<home>.rooday.com, which
+#     matches the same Host and forwards to the origin. If the home proxy fails
+#     its health check, go to the origin directly instead.
+# A request is relayed at most once: the home proxy always takes the origin
+# branch, so there are no loops as long as every proxy runs the same table.
+#
+# To add a Plex server: add it to $homes (and advertise
+# plex-proxy.<server>.rooday.com from it). To add a proxy: see ../README.md.
+{{- $self := env "PROXY_NAME" }}
+{{- if not $self }}{{ fail "PROXY_NAME is not set" }}{{ end }}
+{{- $domain := "rooday.com" }}
+{{- /* Plex server -> the proxy closest to it. */}}
+{{- $homes := dict "intimidator" "proxy-west" "engager" "proxy-east" }}
+
+tls:
+  options:
+    default:
+      # Reject handshakes for hostnames we do not serve (nginx's
+      # ssl_reject_handshake default server did the same).
+      sniStrict: true
+      minVersion: VersionTLS12
+
+http:
+  routers:
+{{- range $server, $home := $homes }}
+    plex-{{ $server }}:
+      rule: Host(`plex-proxy.{{ $server }}.{{ $domain }}`)
+      entryPoints: [websecure]
+      service: plex-{{ $server }}
+      middlewares: [plex-compress]
+      tls:
+        certResolver: letsencrypt
+{{- end }}
+
+  middlewares:
+    plex-compress:
+      # Same text types nginx gzipped; never media streams. Skips responses
+      # that are already compressed (e.g. by the home proxy on a relay).
+      compress:
+        minResponseBodyBytes: 1000
+        includedContentTypes:
+          - text/plain
+          - text/css
+          - text/xml
+          - text/javascript
+          - application/xml
+          - application/javascript
+          - application/x-javascript
+          - application/json
+          - image/svg+xml
+
+  serversTransports:
+{{- range $server, $home := $homes }}
+    plex-{{ $server }}-origin:
+      serverName: plex.{{ $server }}.{{ $domain }}
+{{- if ne $home $self }}
+    plex-{{ $server }}-relay:
+      # SNI must be the plex-proxy name: the home proxy is sniStrict and holds
+      # a certificate for it.
+      serverName: plex-proxy.{{ $server }}.{{ $domain }}
+      # HTTP/2 would multiplex every relayed stream onto one TCP connection
+      # across a ~200 ms path (one congestion window, head-of-line blocking).
+      # HTTP/1.1 gives each request its own pooled connection.
+      disableHTTP2: true
+{{- end }}
+{{- end }}
+
+  services:
+{{- range $server, $home := $homes }}
+{{- if eq $home $self }}
+    plex-{{ $server }}:
+      loadBalancer:
+        # Send Host: plex.<server>.rooday.com so the origin's Traefik routes it.
+        passHostHeader: false
+        serversTransport: plex-{{ $server }}-origin
+        servers:
+          - url: https://plex.{{ $server }}.{{ $domain }}
+{{- else }}
+    plex-{{ $server }}:
+      failover:
+        service: plex-{{ $server }}-relay
+        fallback: plex-{{ $server }}-origin
+    plex-{{ $server }}-relay:
+      loadBalancer:
+        # Keep Host: plex-proxy.<server>.rooday.com so the home proxy routes it.
+        passHostHeader: true
+        serversTransport: plex-{{ $server }}-relay
+        servers:
+          - url: https://{{ $home }}.{{ $domain }}
+        healthCheck:
+          # Plex answers /identity without a token. This goes through the home
+          # proxy to the origin, so it also fails when the origin is down; the
+          # fallback then fails too, which is no worse than today.
+          path: /identity
+          hostname: plex-proxy.{{ $server }}.{{ $domain }}
+          interval: 15s
+          timeout: 5s
+    plex-{{ $server }}-origin:
+      loadBalancer:
+        passHostHeader: false
+        serversTransport: plex-{{ $server }}-origin
+        servers:
+          - url: https://plex.{{ $server }}.{{ $domain }}
+{{- end }}
+{{- end }}
