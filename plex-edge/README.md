@@ -86,19 +86,12 @@ curl -s --resolve plex-proxy.engager.rooday.com:443:137.184.32.90 \
 aws --profile route53 route53 get-health-check-status --health-check-id <id>
 ```
 
-## Adding a proxy
+## Adding or removing a proxy
 
-1. Copy `proxy-blr/` to `proxy-<name>/` and replace `proxy-blr` throughout, including in the
-   systemd unit file names. Set `PROXY_NAME`, librespeed's `TZ` and host, and a timer slot
-   that no other proxy uses.
-2. Add it to `managerFilePatterns` in `renovate.json`.
-3. Create the droplet and add it to the `Firewall` cloud firewall. Then add the grey A record
-   `proxy-<name>.rooday.com` in Cloudflare, and a Route 53 TCP/443 health check plus a latency
-   record for `edge.cdn.rooday.com` (pick the closest AWS region).
-4. Install the sysctl tuning and follow `proxy-blr/README.md` for first-time setup.
-
-To retire a proxy, delete its latency record first. Wait a few minutes for the
-60-second TTL, then destroy the droplet and remove its health check and A record.
+See [SOP.md](SOP.md). It covers:
+- testing a candidate region before you commit to it
+- bringing a proxy up: repo, droplet, DNS, Route 53, Uptime Kuma
+- taking one down
 
 ## Adding a Plex server
 
