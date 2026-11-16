@@ -132,8 +132,8 @@
       "matchFileNames": ["engager/**", "intimidator/**"],
       "matchPackageNames": [
         "qmcgaw/gluetun", "lscr.io/linuxserver/qbittorrent", "grafana/grafana", "influxdb",
-        "coturn/coturn", "nginx", "docker.io/library/redis", "docker.io/actualbudget/actual-server",
-        "vabene1111/recipes", "ghcr.io/gramps-project/grampsweb", "matrixdotorg/synapse", "ghost",
+        "docker.io/library/redis", "docker.io/actualbudget/actual-server",
+        "vabene1111/recipes", "ghcr.io/gramps-project/grampsweb", "ghost",
         "ghcr.io/immich-app/immich-server", "ghcr.io/immich-app/immich-machine-learning",
         "mysql", "docker.io/library/mysql"
       ],
