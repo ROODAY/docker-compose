@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily proxy-blr deploy
+
+[Timer]
+OnCalendar=*-*-* 08:30:00 UTC
+RandomizedDelaySec=30m
+Persistent=true
+AccuracySec=1m
+Unit=proxy-blr-update.service
+
+[Install]
+WantedBy=timers.target

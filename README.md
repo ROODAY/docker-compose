@@ -1,6 +1,7 @@
 # docker-compose
 
-My docker compose files, organized by server
+My docker compose files, organized by server. `plex-edge/` is the Plex
+routing shared by the `proxy-*` droplets (latency DNS + relays; see its README).
 
 ## Updates
 
