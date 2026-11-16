@@ -8,7 +8,7 @@
 http:
   routers:
     librespeed:
-      rule: Host(`librespeed.plex-proxy.intimidator.rooday.com`)
+      rule: Host(`librespeed.proxy-west.rooday.com`)
       entryPoints: [websecure]
       service: librespeed
       middlewares: [librespeed-auth]
