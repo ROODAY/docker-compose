@@ -3,7 +3,7 @@
 notifications:
   onStart: []
   onSkip: ["email"]
-  onSuccess: ["email"]
+  onSuccess: []
   onFailure: ["email"]
 
 email:

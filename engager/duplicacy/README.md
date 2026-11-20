@@ -3,7 +3,7 @@
 Duplicacy backs up the whole host (repository root `/`) to Backblaze B2 as
 the storage named `backblaze`. `engager-backup.timer` runs duplicacy-util
 (backup, prune, check) daily at 02:00 host time plus up to 30 minutes of
-jitter, clear of the deploy timer at 04:30. duplicacy-util emails the result.
+jitter, clear of the deploy timer at 04:30. duplicacy-util emails only when a run is skipped or fails.
 
 `/usr/local/bin/duplicacy-util` is the build from the
 [ROODAY/duplicacy-util](https://github.com/ROODAY/duplicacy-util) fork
