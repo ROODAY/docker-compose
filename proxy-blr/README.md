@@ -41,6 +41,7 @@ check and latency record (region `ap-south-2`). See `../plex-edge/README.md`.
 
 ## Retiring it
 
-Delete the `proxy-blr` latency record for `edge.cdn.rooday.com` in Route 53
-first, and wait a few minutes. Then destroy the droplet, and delete its health check and the
-two Cloudflare records.
+Full steps, including Uptime Kuma: `../plex-edge/SOP.md`, section 3.
+IDs: droplet `619987115`, IP `168.144.65.133`, Route 53 health check
+`25a1e5b6-2349-5102-09da-c59c39d3101c`, latency region `ap-south-2`. In Kuma,
+the `proxy-blr` group holds "Librespeed (proxy-blr)" and "proxy-blr deploy".
