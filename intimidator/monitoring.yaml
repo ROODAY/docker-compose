@@ -1,7 +1,7 @@
 # for port mapping, left side is host, right side is container
 services:
   influxdb:
-    image: influxdb:2.9.1
+    image: influxdb:2.10.1
     container_name: influxdb
     #user: 1000:1000
     networks:
