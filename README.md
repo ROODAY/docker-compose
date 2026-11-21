@@ -38,7 +38,8 @@ step is manual:
 2. Deploy it now instead of waiting for the timer: `bash ./<host>/update-now.sh`.
 
 **Rollback.** `git revert` the update commit and push, then run
-`update-now.sh`. The previous image stays on the host for 14 days. Some apps
+`update-now.sh`, which pulls the previous image again (old images are
+pruned after each deploy). Some apps
 migrate their database on start (ghost, grampsweb, tandoor), and for
 those you may also need to restore their data from the nightly Duplicacy
 backup.

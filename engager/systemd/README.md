@@ -23,8 +23,10 @@ Daily at 04:30 local time (up to 30 minutes of jitter):
    services come back, and the run still fails, naming the services that
    would not start, including those whose dependency is broken. Pruning is
    skipped on a failed run.
-5. Prunes dangling images older than 14 days. The previous image stays
-   available for rollback.
+5. Runs `docker system prune -af`: removes every image no running container
+   uses, along with stopped containers, unused networks and build cache.
+   Volumes are kept. Old versions are not kept locally; a rollback pulls
+   the previous tag again.
 
 A dirty `engager/` checkout — tracked, staged, or untracked files — is refused
 (`ERROR: dirty engager worktree`), because deploying uncommitted state defeats
@@ -128,7 +130,8 @@ sudo systemctl start engager-update.service
 ```
 
 A checkout-only rollback does not stick: the next run fast-forwards back to
-`main`. The previous image is still present for up to 14 days.
+`main`. The previous image was pruned, so the deploy pulls it again from
+the registry.
 
 ## Uninstall
 

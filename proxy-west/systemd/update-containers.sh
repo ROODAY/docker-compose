@@ -110,8 +110,12 @@ fi
 docker compose kill -s HUP traefik >/dev/null \
   || log "WARNING: could not signal traefik to reload its config"
 
-# Keep two weeks of previous images for rollback; never -a.
-docker image prune -f --filter "until=336h" >/dev/null
+# Remove every image no container uses, plus stopped containers, unused
+# networks and build cache. Pinned tags are never "dangling", so a plain
+# `image prune` kept every superseded version forever and filled the disk.
+# Rollback does not need the old image locally: reverting the tag and
+# redeploying pulls it again. Volumes are not touched.
+docker system prune -af >/dev/null
 
 log "deploy complete"
 

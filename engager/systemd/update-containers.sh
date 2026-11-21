@@ -104,8 +104,12 @@ if ! docker compose up -d --remove-orphans; then
   die "docker compose up failed, but every service started on retry"
 fi
 
-# Keep two weeks of previous images for rollback; never -a.
-docker image prune -f --filter "until=336h" >/dev/null
+# Remove every image no container uses, plus stopped containers, unused
+# networks and build cache. Pinned tags are never "dangling", so a plain
+# `image prune` kept every superseded version forever and filled the disk.
+# Rollback does not need the old image locally: reverting the tag and
+# redeploying pulls it again. Volumes are not touched.
+docker system prune -af >/dev/null
 
 log "deploy complete"
 
