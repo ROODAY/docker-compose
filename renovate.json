@@ -17,23 +17,30 @@
       "minimumReleaseAgeBehaviour": "timestamp-optional"
     },
     {
-      "description": "LinuxServer tags: upstream version (3 or 4 parts), optional commit, then -lsNNN rebuild number.",
+      "description": "LinuxServer tags with a 4-part upstream version: 4th part is build, optional commit, then -lsNNN as revision.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["lscr.io/linuxserver/**"],
-      "matchCurrentValue": "/-ls\\d+$/",
-      "versioning": "regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:\\.(?<build>\\d+))?(?:[-_][a-zA-Z0-9.]+)*-ls(?<revision>\\d+)$"
+      "matchCurrentValue": "/^v?\\d+\\.\\d+\\.\\d+\\.\\d+.*-ls\\d+$/",
+      "versioning": "regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)(?:[-_][a-zA-Z0-9.]+)*-ls(?<revision>\\d+)$"
+    },
+    {
+      "description": "LinuxServer tags with a 3-part upstream version: -lsNNN goes in build, because Renovate's regex versioning ignores revision unless build is set.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["lscr.io/linuxserver/**"],
+      "matchCurrentValue": "/^v?\\d+\\.\\d+\\.\\d+(?:[-_][a-zA-Z0-9.]+)*-ls\\d+$/",
+      "versioning": "regex:^v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:[-_][a-zA-Z0-9.]+)*-ls(?<build>\\d+)$"
     },
     {
       "description": "faster-whisper publishes gpu-legacy- prefixed builds that the generic LinuxServer regex does not match.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["lscr.io/linuxserver/faster-whisper"],
-      "versioning": "regex:^gpu-legacy-v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-ls(?<revision>\\d+)$"
+      "versioning": "regex:^gpu-legacy-v?(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-ls(?<build>\\d+)$"
     },
     {
       "description": "calibre-web has a legacy v5.x-ls1 tag line from 2020 that would otherwise look like a major upgrade; only the bare 0.x-lsNNN line is current.",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["lscr.io/linuxserver/calibre-web"],
-      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-ls(?<revision>\\d+)$"
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-ls(?<build>\\d+)$"
     },
     {
       "description": "immich-machine-learning ships the same release as the server with a -cuda suffix.",
