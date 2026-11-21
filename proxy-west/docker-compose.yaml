@@ -68,7 +68,7 @@ services:
     logging: *logging
 
   librespeed:
-    image: lscr.io/linuxserver/librespeed:v6.3.1-ls299
+    image: lscr.io/linuxserver/librespeed:v6.3.1-ls303
     container_name: librespeed
     restart: unless-stopped
     networks:
