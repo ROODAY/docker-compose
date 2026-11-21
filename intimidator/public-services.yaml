@@ -133,7 +133,7 @@ services:
       - tandoor.env
   tandoor:
     restart: unless-stopped
-    image: vabene1111/recipes:2.7.4
+    image: vabene1111/recipes:2.7.6
     container_name: tandoor
     networks:
       - public
