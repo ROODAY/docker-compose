@@ -290,8 +290,7 @@ services:
       - traefik.http.routers.calibre.entrypoints=websecure
       - traefik.http.routers.calibre.tls.certresolver=cloudflare
   obsidian-script-server:
-    build:
-      context: /home/rooday/obsidian-scripts-server
+    image: ghcr.io/rooday/obsidian-scripts-server:1.0.0
     container_name: obsidian-script-server
     networks:
       - private
