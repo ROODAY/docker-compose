@@ -57,7 +57,7 @@ services:
         max-size: 10m
     restart: unless-stopped
   bazarr:
-    image: lscr.io/linuxserver/bazarr:v1.6.2-ls371
+    image: lscr.io/linuxserver/bazarr:v1.6.2-ls373
     container_name: bazarr
     networks:
       - private
