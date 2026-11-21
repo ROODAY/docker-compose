@@ -4,7 +4,9 @@
   "timezone": "America/New_York",
   "schedule": ["at any time"],
   "prHourlyLimit": 0,
-  "dependencyDashboard": true,
+  "dependencyDashboard": {
+    "enabled": true
+  },
   "docker-compose": {
     "managerFilePatterns": ["/^(?:engager|intimidator|proxy-west|proxy-east|proxy-blr)\\/.*\\.ya?ml$/"]
   },
