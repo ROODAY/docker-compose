@@ -61,7 +61,7 @@ services:
       - traefik.http.routers.tautulli.entrypoints=websecure
       - traefik.http.routers.tautulli.tls.certresolver=cloudflare
   librespeed:
-    image: lscr.io/linuxserver/librespeed:v6.3.1-ls299
+    image: lscr.io/linuxserver/librespeed:v6.3.1-ls303
     container_name: librespeed
     networks:
       - public

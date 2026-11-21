@@ -84,7 +84,7 @@ services:
       - traefik.http.routers.requestrr.tls.certresolver=cloudflare
       - traefik.docker.network=public
   librespeed:
-    image: lscr.io/linuxserver/librespeed:v6.3.1-ls299
+    image: lscr.io/linuxserver/librespeed:v6.3.1-ls303
     container_name: librespeed
     networks:
       - public
