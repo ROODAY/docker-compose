@@ -34,7 +34,7 @@ services:
       - traefik.http.routers.qbittorrent.entrypoints=websecure
       - traefik.http.routers.qbittorrent.tls.certresolver=cloudflare
   qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:5.3.0
+    image: lscr.io/linuxserver/qbittorrent:5.3.1
     container_name: qbittorrent
     network_mode: "service:gluetun"
     # Shares gluetun's network namespace, so it must be recreated with it.
