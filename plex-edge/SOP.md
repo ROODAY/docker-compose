@@ -192,7 +192,7 @@ passwd rooday && usermod -aG sudo rooday
 # From a second terminal, check that ssh rooday@$IP 'sudo -v' works. Then, as rooday:
 echo 'PermitRootLogin no' | sudo tee /etc/ssh/sshd_config.d/10-no-root.conf && sudo systemctl reload ssh
 htpasswd -B -c ~/docker-compose/proxy-xyz/data/traefik/htpasswd-librespeed <user>
-sudo docker restart traefik   # the htpasswd is a single-file mount, so a SIGHUP is not enough
+sudo docker restart traefik   # Traefik reads the htpasswd only at start
 echo 'KUMA_PUSH_URL="https://status.rooday.com/api/push/<token>"' | sudo tee /etc/default/compose-updater >/dev/null
 sudo chmod 600 /etc/default/compose-updater
 bash ~/docker-compose/proxy-xyz/update-now.sh

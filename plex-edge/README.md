@@ -70,9 +70,12 @@ sysctl net.ipv4.tcp_congestion_control net.core.default_qdisc   # bbr, fq
 
 The file provider loads `local/` (the proxy's own `traefik/`) and `plex-edge/`
 as subdirectories, but Traefik only watches the top directory. The daily
-deploy (`<proxy>/systemd/update-containers.sh`) therefore sends Traefik a SIGHUP after
-`docker compose up`. After a manual edit on a droplet, run
-`docker kill -s HUP traefik`.
+deploy (`<proxy>/systemd/update-containers.sh`) therefore restarts Traefik when the
+files it mounts changed since it last loaded them (a Traefik that `up` just
+recreated already has them). After a manual edit on a droplet, run
+`docker compose restart traefik`. Do not send it a SIGHUP: one that arrives
+while Traefik is starting kills it, and Docker does not restart a container
+killed with `docker kill`.
 
 ## Checks
 

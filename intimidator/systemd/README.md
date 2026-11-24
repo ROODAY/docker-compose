@@ -23,10 +23,14 @@ Daily at 05:00 local time (up to 30 minutes of jitter):
    services come back, and the run still fails, naming the services that
    would not start, including those whose dependency is broken. Pruning is
    skipped on a failed run.
-5. Runs `docker system prune -af`: removes every image no running container
-   uses, along with stopped containers, unused networks and build cache.
-   Volumes are kept. Old versions are not kept locally; a rollback pulls
-   the previous tag again.
+5. Waits 15 s, then fails the run if any container with an `always` or
+   `unless-stopped` restart policy is not running (one-shot jobs with
+   `restart: "no"` are skipped), so a service that dies right after starting
+   alerts instead of reporting a good deploy.
+6. Prunes images no container uses (running or stopped), unused networks and
+   build cache. Containers are never removed, so one that died keeps its logs
+   for debugging. Volumes are kept. Old versions are not kept locally; a
+   rollback pulls the previous tag again.
 
 A dirty `intimidator/` checkout — tracked, staged, or untracked files — is
 refused (`ERROR: dirty intimidator worktree`), because deploying uncommitted
