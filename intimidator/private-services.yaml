@@ -336,7 +336,7 @@ services:
       - traefik.http.routers.cleanuparr.entrypoints=websecure
       - traefik.http.routers.cleanuparr.tls.certresolver=cloudflare
   whisper:
-    image: lscr.io/linuxserver/faster-whisper:gpu-legacy-v3.9.1-ls80
+    image: lscr.io/linuxserver/faster-whisper:gpu-legacy-v3.9.1-ls81
     container_name: wyoming-whisper-gpu
     restart: unless-stopped
     networks:
