@@ -40,7 +40,7 @@ services:
       - traefik.enable=false
 
   grampsweb_redis:
-    image: docker.io/library/redis:8.10.3-alpine
+    image: docker.io/library/redis:8.12.0-alpine
     container_name: grampsweb_redis
     networks:
       - private
