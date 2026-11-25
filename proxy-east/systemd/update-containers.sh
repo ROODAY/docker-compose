@@ -81,8 +81,22 @@ if grep -qi 'variable is not set' <<<"$config_out"; then
   die "compose variables are unset; check $PROJECT_DIR/.env"
 fi
 
+# Hash of the Traefik config the container mounts (this proxy's traefik/ and
+# the shared plex-edge/traefik/), to tell whether Traefik must be restarted.
+traefik_config_hash() {
+  local files
+  files="$(find traefik ../plex-edge/traefik -type f -print0 | sort -z | xargs -0 sha256sum)" \
+    || return 1
+  sha256sum <<<"$files" | cut -d' ' -f1
+}
+TRAEFIK_STATE="${TRAEFIK_STATE:-/var/lib/proxy-east-updater/traefik-config.sha256}"
+
 docker compose pull --ignore-pull-failures --quiet \
   || log "WARNING: one or more image pulls failed; continuing"
+
+# Which Traefik container runs before `up`, to tell afterwards whether `up`
+# recreated it.
+traefik_before="$(docker compose ps -aq traefik)"
 
 # One up for the whole project so Compose honours depends_on/restart ordering.
 if ! docker compose up -d --remove-orphans; then
@@ -105,17 +119,51 @@ if ! docker compose up -d --remove-orphans; then
 fi
 
 # Traefik's file provider does not watch its subdirectories (see
-# docker-compose.yaml), so make it re-read its config. Harmless when nothing
-# changed or the container was just recreated.
-docker compose kill -s HUP traefik >/dev/null \
-  || log "WARNING: could not signal traefik to reload its config"
+# docker-compose.yaml), so a config change needs a restart. No SIGHUP: a
+# SIGHUP that reaches Traefik before it has installed its handler kills it
+# (exit 129), and `docker kill` marks the container as stopped by hand, so
+# `unless-stopped` does not bring it back. That took proxy-blr down on
+# 2026-11-24, when the HUP landed 0.3 s after a recreate.
+#
+# Restart only when the mounted config differs from what this Traefik loaded.
+# A container that `up` just created started on the current files, so it only
+# records the hash. The hash is kept across runs, so a run that failed before
+# restarting is caught up by the next one.
+traefik_after="$(docker compose ps -aq traefik)"
+traefik_config="$(traefik_config_hash)" || die "cannot hash the traefik config"
+traefik_loaded="$(cat "$TRAEFIK_STATE" 2>/dev/null || true)"
+if [[ -n "$traefik_before" && "$traefik_after" == "$traefik_before" \
+      && "$traefik_config" != "$traefik_loaded" ]]; then
+  log "traefik config changed; restarting traefik"
+  docker compose restart traefik >/dev/null || die "could not restart traefik"
+fi
+mkdir -p "$(dirname "$TRAEFIK_STATE")"
+printf '%s\n' "$traefik_config" >"$TRAEFIK_STATE"
 
-# Remove every image no container uses, plus stopped containers, unused
-# networks and build cache. Pinned tags are never "dangling", so a plain
-# `image prune` kept every superseded version forever and filled the disk.
-# Rollback does not need the old image locally: reverting the tag and
-# redeploying pulls it again. Volumes are not touched.
-docker system prune -af >/dev/null
+# Fail the run if a service that should stay up is not running, so Uptime Kuma
+# gets DOWN instead of UP. Wait first, to catch a container that dies right
+# after it starts. Only containers with an always/unless-stopped restart policy
+# are checked: one-shot jobs (restart: "no") may exit by design.
+sleep 15
+not_running=()
+while read -r name policy status; do
+  case "$policy" in always|unless-stopped) ;; *) continue ;; esac
+  [[ "$status" == running ]] || not_running+=("${name#/} ($status)")
+done < <(docker compose ps -aq | xargs -r docker inspect -f '{{.Name}} {{.HostConfig.RestartPolicy.Name}} {{.State.Status}}')
+if ((${#not_running[@]})); then
+  die "not running after deploy: ${not_running[*]}"
+fi
+
+# Remove every image no container uses (running or stopped), unused networks
+# and build cache. Pinned tags are never "dangling", so a plain `image prune`
+# kept every superseded version forever and filled the disk. Rollback does not
+# need the old image locally: reverting the tag and redeploying pulls it again.
+# Containers are never removed here: `docker system prune` used to delete
+# stopped ones, which erased a container that had just died (and its logs) and
+# its image with it. Volumes are not touched.
+docker image prune -af >/dev/null
+docker network prune -f >/dev/null
+docker builder prune -af >/dev/null
 
 log "deploy complete"
 

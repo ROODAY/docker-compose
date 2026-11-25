@@ -49,9 +49,10 @@ services:
       # internet-facing proxy does not need the docker socket.
       - --providers.file.directory=/etc/traefik/dynamic
       # No watch: Traefik only watches the top directory, which here holds
-      # just the two mounted subdirectories. update-containers.sh sends
-      # SIGHUP after every deploy instead; after a manual edit run
-      # `docker kill -s HUP traefik`.
+      # just the two mounted subdirectories. update-containers.sh restarts
+      # Traefik when a deploy changes its config; after a manual edit run
+      # `docker compose restart traefik`. Never SIGHUP it: a HUP that lands
+      # while Traefik is still starting kills it for good (see the script).
       - --entrypoints.web.address=:80
       - --entrypoints.web.http.redirections.entryPoint.to=websecure
       - --entrypoints.web.http.redirections.entryPoint.scheme=https

@@ -104,12 +104,30 @@ if ! docker compose up -d --remove-orphans; then
   die "docker compose up failed, but every service started on retry"
 fi
 
-# Remove every image no container uses, plus stopped containers, unused
-# networks and build cache. Pinned tags are never "dangling", so a plain
-# `image prune` kept every superseded version forever and filled the disk.
-# Rollback does not need the old image locally: reverting the tag and
-# redeploying pulls it again. Volumes are not touched.
-docker system prune -af >/dev/null
+# Fail the run if a service that should stay up is not running, so Uptime Kuma
+# gets DOWN instead of UP. Wait first, to catch a container that dies right
+# after it starts. Only containers with an always/unless-stopped restart policy
+# are checked: one-shot jobs (restart: "no") may exit by design.
+sleep 15
+not_running=()
+while read -r name policy status; do
+  case "$policy" in always|unless-stopped) ;; *) continue ;; esac
+  [[ "$status" == running ]] || not_running+=("${name#/} ($status)")
+done < <(docker compose ps -aq | xargs -r docker inspect -f '{{.Name}} {{.HostConfig.RestartPolicy.Name}} {{.State.Status}}')
+if ((${#not_running[@]})); then
+  die "not running after deploy: ${not_running[*]}"
+fi
+
+# Remove every image no container uses (running or stopped), unused networks
+# and build cache. Pinned tags are never "dangling", so a plain `image prune`
+# kept every superseded version forever and filled the disk. Rollback does not
+# need the old image locally: reverting the tag and redeploying pulls it again.
+# Containers are never removed here: `docker system prune` used to delete
+# stopped ones, which erased a container that had just died (and its logs) and
+# its image with it. Volumes are not touched.
+docker image prune -af >/dev/null
+docker network prune -f >/dev/null
+docker builder prune -af >/dev/null
 
 log "deploy complete"
 
