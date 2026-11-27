@@ -39,7 +39,7 @@ services:
     labels:
       - traefik.enable=false
   tautulli:
-    image: lscr.io/linuxserver/tautulli:v2.19.1-ls252
+    image: lscr.io/linuxserver/tautulli:v2.19.1-ls253
     container_name: tautulli
     networks:
       - public
